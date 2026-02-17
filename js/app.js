@@ -169,6 +169,9 @@ const StateManager = (() => {
     function applyTheme(dark) {
         document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
         dom.themeSwitch.checked = dark;
+        // Sync mobile status-bar color
+        const metaTC = document.getElementById('meta-theme-color');
+        if (metaTC) metaTC.setAttribute('content', dark ? '#0f1513' : '#e8f0ee');
         try {
             localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
         } catch { /* ignore */ }
