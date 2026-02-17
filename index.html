@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="Free open-source QR code generator with deep styling controls — colors, gradients, logos, and multiple export formats." />
+    <title>QR Code Generator — Free &amp; Open Source</title>
+    <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+    <div class="app-shell">
+
+        <!-- ========== Header (fixed) ========== -->
+        <header class="app-header">
+            <div class="app-header-center">
+                <h1>QR Code Generator</h1>
+                <p>Design beautiful QR codes — 100 % free &amp; open source</p>
+            </div>
+            <div class="theme-toggle">
+                <span class="toggle-label">☀️</span>
+                <label class="switch">
+                    <input type="checkbox" id="theme-switch" />
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label">🌙</span>
+            </div>
+        </header>
+
+        <!-- ========== Main Layout ========== -->
+        <main class="app-layout">
+
+            <!-- ────────── Left: Scrollable Controls ────────── -->
+            <div class="panel controls-panel">
+                <h2 class="panel-title"><span class="icon">⚙️</span> Design Controls</h2>
+
+                <!-- ── Content ── -->
+                <div class="control-section">
+                    <div class="section-header"><span class="icon">🔗</span> Content</div>
+                    <div class="field-group">
+                        <label for="qr-text">URL or Text</label>
+                        <input type="url" id="qr-text" placeholder="https://example.com" value="https://example.com" />
+                    </div>
+                </div>
+
+                <!-- ── Background ── -->
+                <div class="control-section">
+                    <div class="section-header"><span class="icon">🎨</span> Background</div>
+
+                    <div class="field-group">
+                        <label>Mode</label>
+                        <div class="segmented-group">
+                            <input type="radio" name="bg-mode" id="bg-solid" value="solid" checked />
+                            <label for="bg-solid">Solid</label>
+                            <input type="radio" name="bg-mode" id="bg-transparent" value="transparent" />
+                            <label for="bg-transparent">Transparent</label>
+                            <input type="radio" name="bg-mode" id="bg-gradient" value="gradient" />
+                            <label for="bg-gradient">Gradient</label>
+                        </div>
+                    </div>
+
+                    <div class="field-group" id="bg-solid-group">
+                        <label for="bg-color">Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="bg-color" value="#ffffff" />
+                            <span class="color-hex" id="bg-color-hex">#ffffff</span>
+                        </div>
+                    </div>
+
+                    <div class="gradient-controls" id="bg-gradient-controls">
+                        <div class="gradient-row">
+                            <div class="field-group" style="flex:1">
+                                <label for="bg-grad-color1">Color 1</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="bg-grad-color1" value="#80cbc4" />
+                                    <span class="color-hex" id="bg-grad-hex1">#80cbc4</span>
+                                </div>
+                            </div>
+                            <div class="field-group" style="flex:1">
+                                <label for="bg-grad-color2">Color 2</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="bg-grad-color2" value="#81d4fa" />
+                                    <span class="color-hex" id="bg-grad-hex2">#81d4fa</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label for="bg-grad-angle">Angle: <span id="bg-grad-angle-val">135</span>°</label>
+                            <input type="range" id="bg-grad-angle" min="0" max="360" value="135" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Dots ── -->
+                <div class="control-section">
+                    <div class="section-header"><span class="icon">⬛</span> Dot Style</div>
+
+                    <div class="field-group">
+                        <label for="dot-shape">Shape</label>
+                        <select id="dot-shape">
+                            <option value="rounded" selected>Rounded</option>
+                            <option value="dots">Dots</option>
+                            <option value="classy">Classy</option>
+                            <option value="classy-rounded">Classy Rounded</option>
+                            <option value="square">Square</option>
+                            <option value="extra-rounded">Extra Rounded</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label>Color Mode</label>
+                        <div class="segmented-group">
+                            <input type="radio" name="dot-color-mode" id="dot-solid" value="solid" checked />
+                            <label for="dot-solid">Solid</label>
+                            <input type="radio" name="dot-color-mode" id="dot-gradient" value="gradient" />
+                            <label for="dot-gradient">Gradient</label>
+                        </div>
+                    </div>
+
+                    <div class="field-group" id="dot-single-color-group">
+                        <label for="dot-color">Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="dot-color" value="#000000" />
+                            <span class="color-hex" id="dot-color-hex">#000000</span>
+                        </div>
+                    </div>
+
+                    <div class="gradient-controls" id="dot-gradient-controls">
+                        <div class="gradient-row">
+                            <div class="field-group" style="flex:1">
+                                <label for="dot-grad-color1">Color 1</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="dot-grad-color1" value="#004d47" />
+                                    <span class="color-hex" id="dot-grad-hex1">#004d47</span>
+                                </div>
+                            </div>
+                            <div class="field-group" style="flex:1">
+                                <label for="dot-grad-color2">Color 2</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="dot-grad-color2" value="#0277bd" />
+                                    <span class="color-hex" id="dot-grad-hex2">#0277bd</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label for="dot-grad-angle">Angle: <span id="dot-grad-angle-val">135</span>°</label>
+                            <input type="range" id="dot-grad-angle" min="0" max="360" value="135" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Corner Squares ── -->
+                <div class="control-section">
+                    <div class="section-header"><span class="icon">🔲</span> Corner Squares</div>
+
+                    <div class="field-group">
+                        <label for="corner-sq-shape">Shape</label>
+                        <select id="corner-sq-shape">
+                            <option value="dot">Dot</option>
+                            <option value="square" selected>Square</option>
+                            <option value="extra-rounded">Extra Rounded</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label>Color Mode</label>
+                        <div class="segmented-group">
+                            <input type="radio" name="csq-color-mode" id="csq-solid" value="solid" checked />
+                            <label for="csq-solid">Solid</label>
+                            <input type="radio" name="csq-color-mode" id="csq-gradient" value="gradient" />
+                            <label for="csq-gradient">Gradient</label>
+                        </div>
+                    </div>
+
+                    <div class="field-group" id="csq-single-color-group">
+                        <label for="csq-color">Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="csq-color" value="#000000" />
+                            <span class="color-hex" id="csq-color-hex">#000000</span>
+                        </div>
+                    </div>
+
+                    <div class="gradient-controls" id="csq-gradient-controls">
+                        <div class="gradient-row">
+                            <div class="field-group" style="flex:1">
+                                <label for="csq-grad-color1">Color 1</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="csq-grad-color1" value="#004d47" />
+                                    <span class="color-hex" id="csq-grad-hex1">#004d47</span>
+                                </div>
+                            </div>
+                            <div class="field-group" style="flex:1">
+                                <label for="csq-grad-color2">Color 2</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="csq-grad-color2" value="#0277bd" />
+                                    <span class="color-hex" id="csq-grad-hex2">#0277bd</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label for="csq-grad-angle">Angle: <span id="csq-grad-angle-val">135</span>°</label>
+                            <input type="range" id="csq-grad-angle" min="0" max="360" value="135" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Corner Dots ── -->
+                <div class="control-section">
+                    <div class="section-header"><span class="icon">🔘</span> Corner Dots</div>
+
+                    <div class="field-group">
+                        <label for="corner-dot-shape">Shape</label>
+                        <select id="corner-dot-shape">
+                            <option value="dot" selected>Dot</option>
+                            <option value="square">Square</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label>Color Mode</label>
+                        <div class="segmented-group">
+                            <input type="radio" name="cd-color-mode" id="cd-solid" value="solid" checked />
+                            <label for="cd-solid">Solid</label>
+                            <input type="radio" name="cd-color-mode" id="cd-gradient" value="gradient" />
+                            <label for="cd-gradient">Gradient</label>
+                        </div>
+                    </div>
+
+                    <div class="field-group" id="cd-single-color-group">
+                        <label for="cd-color">Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="cd-color" value="#000000" />
+                            <span class="color-hex" id="cd-color-hex">#000000</span>
+                        </div>
+                    </div>
+
+                    <div class="gradient-controls" id="cd-gradient-controls">
+                        <div class="gradient-row">
+                            <div class="field-group" style="flex:1">
+                                <label for="cd-grad-color1">Color 1</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="cd-grad-color1" value="#004d47" />
+                                    <span class="color-hex" id="cd-grad-hex1">#004d47</span>
+                                </div>
+                            </div>
+                            <div class="field-group" style="flex:1">
+                                <label for="cd-grad-color2">Color 2</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="cd-grad-color2" value="#0277bd" />
+                                    <span class="color-hex" id="cd-grad-hex2">#0277bd</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label for="cd-grad-angle">Angle: <span id="cd-grad-angle-val">135</span>°</label>
+                            <input type="range" id="cd-grad-angle" min="0" max="360" value="135" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Logo ── -->
+                <div class="control-section">
+                    <div class="section-header"><span class="icon">🖼️</span> Center Logo</div>
+
+                    <div class="upload-area" id="logo-upload-area">
+                        <input type="file" id="logo-input" accept="image/*" />
+                        <div class="upload-icon">📤</div>
+                        <div class="upload-text">Click or drag image here</div>
+                    </div>
+
+                    <div class="logo-preview-container hidden" id="logo-preview-container">
+                        <img id="logo-preview-img" src="" alt="Logo preview" />
+                        <span id="logo-filename"
+                            style="font-size:.78rem;color:var(--md-on-surface-variant);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                        <button class="remove-logo" id="remove-logo-btn">✕ Remove</button>
+                    </div>
+
+                    <div class="field-group hidden" id="logo-options" style="margin-top:.85rem">
+                        <label for="logo-size">Logo Size: <span id="logo-size-val">30</span>%</label>
+                        <input type="range" id="logo-size" min="10" max="50" value="30" />
+                    </div>
+
+                    <div class="field-group hidden" id="logo-margin-group" style="margin-top:.4rem">
+                        <label for="logo-margin">Logo Margin: <span id="logo-margin-val">5</span>px</label>
+                        <input type="range" id="logo-margin" min="0" max="30" value="5" />
+                    </div>
+
+                    <div class="toggle-row hidden" id="logo-mode-toggle" style="margin-top:.75rem">
+                        <span class="toggle-label" id="logo-mode-label">Placement: Front (overlay)</span>
+                        <label class="switch">
+                            <input type="checkbox" id="logo-behind" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ────────── Right: Preview Panel ────────── -->
+            <div class="panel preview-panel">
+                <h2 class="panel-title"><span class="icon">👁️</span> Preview</h2>
+
+                <div class="qr-preview-wrapper" id="qr-preview"></div>
+
+                <!-- Export with resolution settings -->
+                <div class="export-section">
+                    <div class="export-header-row">
+                        <div class="section-header"><span class="icon">💾</span> Export</div>
+                        <button class="btn-icon" id="resolution-toggle-btn" title="Resolution settings">⚙️</button>
+                    </div>
+
+                    <div class="resolution-picker" id="resolution-picker">
+                        <label>Resolution</label>
+                        <div class="segmented-group">
+                            <input type="radio" name="export-res" id="res-1x" value="1" />
+                            <label for="res-1x">1x</label>
+                            <input type="radio" name="export-res" id="res-2x" value="2" />
+                            <label for="res-2x">2x</label>
+                            <input type="radio" name="export-res" id="res-4x" value="4" checked />
+                            <label for="res-4x">4x</label>
+                            <input type="radio" name="export-res" id="res-8x" value="8" />
+                            <label for="res-8x">8x</label>
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-filled" id="download-png">PNG</button>
+                        <button class="btn btn-tonal" id="download-jpeg">JPEG</button>
+                        <button class="btn btn-outlined" id="download-svg">SVG</button>
+                    </div>
+                </div>
+
+                <!-- Templates & Gallery -->
+                <div class="template-section">
+                    <div class="section-header"><span class="icon">📁</span> Templates</div>
+
+                    <div class="btn-row" style="margin-bottom:.55rem">
+                        <button class="btn btn-filled" id="save-design-btn">💾 Save Design</button>
+                    </div>
+
+                    <div class="session-gallery" id="session-gallery">
+                        <div class="gallery-empty">No saved designs yet</div>
+                    </div>
+                    <div class="gallery-limit-note" id="gallery-limit-note"></div>
+
+                    <div class="btn-row" style="margin-top:.65rem">
+                        <button class="btn btn-outlined" id="export-json-btn">⬇ Export JSON</button>
+                        <button class="btn btn-outlined" id="import-json-btn">⬆ Import JSON</button>
+                    </div>
+                    <input type="file" id="import-json-input" accept=".json" class="hidden" />
+                </div>
+            </div>
+
+        </main>
+
+    </div><!-- /.app-shell -->
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ========== Scripts ========== -->
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
