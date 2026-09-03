@@ -1,0 +1,679 @@
+/* ============================================================
+   QR Code Generator — MD3 Expressive Components
+   Matching PyFDA-Web Component Library
+   ============================================================ */
+
+/* ---------- Cards ---------- */
+.md-card {
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-corner-large);
+  padding: var(--space-md);
+  box-shadow: var(--md-sys-elevation-0);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  transition: box-shadow var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              border-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.md-card:hover {
+  border-color: var(--md-sys-color-outline);
+}
+
+.md-card--elevated {
+  box-shadow: var(--md-sys-elevation-1);
+  border: none;
+}
+
+.md-card__title {
+  font-family: var(--md-sys-typescale-display-font);
+  font-size: var(--md-sys-typescale-title-medium);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  line-height: 1.3;
+}
+
+.md-card__title-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--md-sys-color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.md-card__subtitle {
+  font-size: var(--md-sys-typescale-body-small);
+  color: var(--md-sys-color-on-surface-variant);
+  margin-top: -8px;
+  margin-bottom: var(--space-md);
+}
+
+/* ---------- Text Fields (Outlined MD3) ---------- */
+.md-field {
+  position: relative;
+  margin-bottom: var(--space-sm);
+  width: 100%;
+}
+
+.md-field__input {
+  width: 100%;
+  padding: 14px 16px;
+  font-family: var(--md-sys-typescale-body-font);
+  font-size: var(--md-sys-typescale-body-medium);
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface-container-low);
+  border: 1.5px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  outline: none;
+  transition: border-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              background-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.md-field__input:focus {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-surface);
+}
+
+.md-field__label {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  padding: 0 4px;
+  font-size: var(--md-sys-typescale-label-medium);
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-container-low);
+  pointer-events: none;
+  transition: color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.md-field__input:focus + .md-field__label {
+  color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-surface);
+}
+
+.md-field__helper {
+  font-size: var(--md-sys-typescale-body-small);
+  color: var(--md-sys-color-on-surface-variant);
+  padding: var(--space-xs) var(--space-sm) 0;
+}
+
+/* ---------- Select (Outlined MD3) ---------- */
+.md-select {
+  position: relative;
+  width: 100%;
+  margin-bottom: var(--space-sm);
+}
+
+.md-select__input {
+  width: 100%;
+  padding: 13px 16px;
+  font-family: var(--md-sys-typescale-body-font);
+  font-size: var(--md-sys-typescale-body-medium);
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface-container-low);
+  border: 1.5px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2374777f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 42px;
+  transition: border-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.md-select__input:focus {
+  border-color: var(--md-sys-color-primary);
+}
+
+.md-select__label {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  padding: 0 4px;
+  font-size: var(--md-sys-typescale-label-medium);
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-container-low);
+  pointer-events: none;
+}
+
+.md-select__input:focus + .md-select__label {
+  color: var(--md-sys-color-primary);
+}
+
+/* ---------- Segmented Buttons (MD3 Pill Style) ---------- */
+.md-segmented {
+  display: flex;
+  border-radius: var(--md-sys-shape-corner-full);
+  overflow: hidden;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  width: 100%;
+  background: var(--md-sys-color-surface-container-low);
+}
+
+.md-segmented input[type="radio"] {
+  display: none;
+}
+
+.md-segmented label {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 14px;
+  font-family: var(--md-sys-typescale-body-font);
+  font-size: var(--md-sys-typescale-label-medium);
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  border-right: 1px solid var(--md-sys-color-outline-variant);
+  white-space: nowrap;
+  text-align: center;
+  user-select: none;
+}
+
+.md-segmented label:last-of-type {
+  border-right: none;
+}
+
+.md-segmented label:hover {
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+}
+
+.md-segmented input[type="radio"]:checked + label {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font-weight: 600;
+}
+
+/* ---------- Color Input / Swatch Component ---------- */
+.color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 8px 12px;
+  border-radius: var(--md-sys-shape-corner-small);
+  border: 1.5px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-low);
+  transition: border-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.color-picker-row:focus-within {
+  border-color: var(--md-sys-color-primary);
+}
+
+.color-swatch-wrapper {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  overflow: hidden;
+  box-shadow: var(--md-sys-elevation-1);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+.color-swatch-wrapper input[type="color"] {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 48px;
+  height: 48px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+}
+
+.color-hex-label {
+  font-family: monospace;
+  font-size: var(--md-sys-typescale-body-medium);
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  letter-spacing: 0.04em;
+  flex: 1;
+}
+
+/* ---------- Range Sliders (MD3 Styled) ---------- */
+.range-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.range-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--md-sys-typescale-label-medium);
+  color: var(--md-sys-color-on-surface-variant);
+  font-weight: 500;
+}
+
+.range-value-badge {
+  font-family: monospace;
+  font-size: var(--md-sys-typescale-label-small);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  padding: 2px 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--md-sys-color-surface-container-highest);
+  border-radius: var(--md-sys-shape-corner-full);
+  outline: none;
+  margin: 8px 0;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary);
+  box-shadow: var(--md-sys-elevation-1);
+  cursor: pointer;
+  transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary);
+  border: none;
+  box-shadow: var(--md-sys-elevation-1);
+  cursor: pointer;
+}
+
+/* ---------- Toggle Switch (MD3 Style) ---------- */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 4px 0;
+}
+
+.switch-label {
+  font-size: var(--md-sys-typescale-body-medium);
+  color: var(--md-sys-color-on-surface);
+  font-weight: 500;
+}
+
+.md-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.md-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.md-switch__slider {
+  position: absolute;
+  inset: 0;
+  background-color: var(--md-sys-color-surface-container-highest);
+  border: 1.5px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  cursor: pointer;
+  transition: background-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              border-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.md-switch__slider::before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 3.5px;
+  background-color: var(--md-sys-color-outline);
+  border-radius: 50%;
+  transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              background-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.md-switch input:checked + .md-switch__slider {
+  background-color: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+}
+
+.md-switch input:checked + .md-switch__slider::before {
+  transform: translateX(22px);
+  background-color: var(--md-sys-color-on-primary);
+}
+
+/* ---------- Buttons ---------- */
+.md-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 10px 20px;
+  font-family: var(--md-sys-typescale-body-font);
+  font-size: var(--md-sys-typescale-label-large);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: none;
+  border-radius: var(--md-sys-shape-corner-full);
+  cursor: pointer;
+  transition: background var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              box-shadow var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              transform 100ms ease;
+  outline: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.md-btn:active {
+  transform: scale(0.97);
+}
+
+.md-btn--filled {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  box-shadow: var(--md-sys-elevation-1);
+}
+
+.md-btn--filled:hover {
+  box-shadow: var(--md-sys-elevation-2);
+  filter: brightness(1.06);
+}
+
+.md-btn--tonal {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.md-btn--tonal:hover {
+  filter: brightness(0.96);
+}
+
+.md-btn--outlined {
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.md-btn--outlined:hover {
+  background: var(--md-sys-color-surface-container-high);
+  border-color: var(--md-sys-color-outline);
+}
+
+.md-btn--icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  text-decoration: none;
+}
+
+.md-btn--icon:hover {
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+}
+
+/* ---------- Center Logo Upload Area ---------- */
+.upload-dropzone {
+  border: 2px dashed var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  padding: var(--space-lg) var(--space-md);
+  text-align: center;
+  background: var(--md-sys-color-surface-container-lowest);
+  cursor: pointer;
+  transition: border-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              background var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+.upload-dropzone:hover,
+.upload-dropzone.dragover {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+
+.upload-dropzone__icon {
+  width: 32px;
+  height: 32px;
+  color: var(--md-sys-color-primary);
+}
+
+.upload-dropzone__title {
+  font-size: var(--md-sys-typescale-body-medium);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.upload-dropzone__hint {
+  font-size: var(--md-sys-typescale-body-small);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.logo-preview-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 8px 12px;
+  background: var(--md-sys-color-surface-container);
+  border-radius: var(--md-sys-shape-corner-medium);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.logo-preview-badge img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  background: var(--md-sys-color-surface);
+  padding: 2px;
+}
+
+.logo-preview-badge__name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--md-sys-typescale-body-small);
+  color: var(--md-sys-color-on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+/* ---------- QR Preview Card & Canvas ---------- */
+.qr-preview-box {
+  background: var(--md-sys-color-surface-container-lowest);
+  border-radius: var(--md-sys-shape-corner-large);
+  padding: var(--space-lg);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--md-sys-elevation-1);
+  min-height: 280px;
+  position: relative;
+  overflow: hidden;
+}
+
+.qr-preview-box canvas,
+.qr-preview-box svg {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+  border-radius: var(--md-sys-shape-corner-small);
+  box-shadow: var(--md-sys-elevation-1);
+  transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+/* ---------- Modal / Dialog (PyFDA-Web Match) ---------- */
+.md-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-standard);
+}
+
+.md-modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.md-modal {
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  padding: var(--space-xl);
+  min-width: 320px;
+  max-width: 520px;
+  width: 90vw;
+  box-shadow: var(--md-sys-elevation-5);
+  transform: translateY(24px) scale(0.95);
+  transition: transform var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-emphasized);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.md-modal-backdrop.open .md-modal {
+  transform: translateY(0) scale(1);
+}
+
+.md-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.md-modal__title {
+  font-family: var(--md-sys-typescale-display-font);
+  font-size: var(--md-sys-typescale-title-large);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* ---------- Gallery Cards ---------- */
+.session-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  gap: var(--space-sm);
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.gallery-card {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--md-sys-shape-corner-small);
+  overflow: hidden;
+  border: 1.5px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-lowest);
+  cursor: pointer;
+  transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              border-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              box-shadow var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.gallery-card:hover {
+  transform: scale(1.05);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+.gallery-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-card__delete {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  border: none;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.gallery-card:hover .gallery-card__delete {
+  opacity: 1;
+}
+
+.gallery-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-md);
+  font-size: var(--md-sys-typescale-body-small);
+  color: var(--md-sys-color-on-surface-variant);
+  font-style: italic;
+}
+
+/* Visibility utilities */
+.hidden {
+  display: none !important;
+}

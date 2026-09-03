@@ -1,0 +1,320 @@
+/* ============================================================
+   QR Code Generator — Layout System
+   Matching PyFDA-Web Layout Architecture
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--md-sys-typescale-body-font);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  line-height: 1.5;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- App Shell ---------- */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--md-sys-color-surface);
+}
+
+/* ---------- Top App Bar ---------- */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 0 var(--space-lg);
+  height: 64px;
+  background: var(--md-sys-color-surface-container);
+  box-shadow: var(--md-sys-elevation-2);
+  z-index: 100;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+}
+
+.top-bar__logo {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--md-sys-color-on-primary);
+  font-weight: 700;
+  font-size: 15px;
+  font-family: var(--md-sys-typescale-display-font);
+  letter-spacing: -0.02em;
+  box-shadow: var(--md-sys-elevation-1);
+  user-select: none;
+  cursor: pointer;
+  transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.top-bar__logo:hover {
+  transform: scale(1.04);
+}
+
+.top-bar__brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  user-select: none;
+}
+
+.top-bar__title {
+  font-family: var(--md-sys-typescale-display-font);
+  font-size: var(--md-sys-typescale-title-large);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.top-bar__subtitle {
+  font-size: var(--md-sys-typescale-label-small);
+  color: var(--md-sys-color-on-surface-variant);
+  font-weight: 400;
+  display: block;
+}
+
+.top-bar__spacer {
+  flex: 1;
+}
+
+.top-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* ---------- Main Application Layout ---------- */
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 460px);
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+/* Panels */
+.controls-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-width: 0;
+}
+
+.preview-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  position: sticky;
+  top: calc(64px + var(--space-lg));
+  min-width: 0;
+}
+
+/* Section Grouping */
+.controls-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Grid helper for inputs */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.row--wrap {
+  flex-wrap: wrap;
+}
+
+.flex-1 {
+  flex: 1;
+  min-width: 0;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* Custom Sober Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--md-sys-color-surface-container-low);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--md-sys-color-outline-variant);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--md-sys-color-outline);
+}
+
+/* ---------- CSS Tooltips (PyFDA-Web Style) ---------- */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  padding: 6px 12px;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  font-family: var(--md-sys-typescale-body-font);
+  font-size: var(--md-sys-typescale-label-medium);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  z-index: 2000;
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+}
+
+/* Right-aligned tooltips at the edge of screen */
+.top-bar__actions > [data-tooltip]:last-child::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+/* ---------- Toast System (PyFDA-Web Style) ---------- */
+#toast-container {
+  position: fixed;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  z-index: 6000;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  border-radius: var(--md-sys-shape-corner-small);
+  padding: 12px 20px;
+  font-family: var(--md-sys-typescale-body-font);
+  font-size: var(--md-sys-typescale-body-medium);
+  box-shadow: var(--md-sys-elevation-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+              transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-emphasized);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.error {
+  background: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
+}
+
+.toast.success {
+  background: var(--md-sys-color-success);
+  color: var(--md-sys-color-on-success);
+}
+
+/* ---------- Responsive Breakpoints ---------- */
+@media (max-width: 1024px) {
+  .app-main {
+    grid-template-columns: 1fr;
+    padding: var(--space-md);
+  }
+
+  .preview-column {
+    position: static;
+    order: -1; /* Place preview at top on smaller screens so users see their QR code immediately */
+  }
+}
+
+@media (max-width: 600px) {
+  .top-bar {
+    padding: 0 var(--space-sm);
+    gap: var(--space-sm);
+  }
+
+  .top-bar__subtitle {
+    display: none;
+  }
+
+  .top-bar__title {
+    font-size: 18px;
+  }
+
+  .app-main {
+    padding: var(--space-sm);
+    gap: var(--space-sm);
+  }
+
+  #toast-container {
+    left: var(--space-sm);
+    right: var(--space-sm);
+    bottom: var(--space-sm);
+  }
+
+  .toast {
+    width: 100%;
+  }
+}
