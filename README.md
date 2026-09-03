@@ -2,7 +2,7 @@
 
 A static, client-side web application for generating beautiful, customized, and high-resolution QR codes directly in your browser. This tool provides advanced styling options including multi-stop gradients, customized dot geometries, corner eye styling, and center logo embedding, all rendered 100% locally with zero backend dependencies.
 
-![QR Code Generator Preview](preview-thumbnail.png)
+![QR Code Generator Preview](preview.png)
 
 ## Usage
 
