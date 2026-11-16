@@ -7,35 +7,72 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
+body,
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dialog {
+  margin: 0;
+  padding: 0;
+}
+
 html {
-  font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  accent-color: var(--md-sys-color-primary);
+  scroll-padding-top: calc(4rem + env(safe-area-inset-top, 0px));
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 body {
   font-family: var(--md-sys-typescale-body-font);
+  font-size-adjust: from-font;
   background: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
   line-height: 1.5;
-  min-height: 100vh;
+  text-align: start;
+  overflow-wrap: break-word;
+  min-height: 100dvh;
   width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- Focus & Accessibility Utilities ---------- */
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid Highlight;
+  }
 }
 
 /* ---------- App Shell ---------- */
 .app-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   background: var(--md-sys-color-surface);
 }
@@ -44,9 +81,12 @@ body {
 .top-bar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-md);
-  padding: 0 var(--space-lg);
-  height: 64px;
+  padding-block: var(--space-xs);
+  padding-inline: max(var(--space-lg), env(safe-area-inset-inline-start, 0px))
+                  max(var(--space-lg), env(safe-area-inset-inline-end, 0px));
+  min-height: 4rem;
   background: var(--md-sys-color-surface-container);
   box-shadow: var(--md-sys-elevation-2);
   z-index: 100;
@@ -56,42 +96,44 @@ body {
 }
 
 .top-bar__logo {
-  width: 38px;
-  height: 38px;
+  width: 2.375rem;
+  height: 2.375rem;
   border-radius: var(--md-sys-shape-corner-small);
   background: var(--md-sys-color-primary);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--md-sys-color-on-primary);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-family: var(--md-sys-typescale-display-font);
   letter-spacing: -0.02em;
   box-shadow: var(--md-sys-elevation-1);
   user-select: none;
-  cursor: pointer;
-  transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  flex-shrink: 0;
 }
 
-.top-bar__logo:hover {
-  transform: scale(1.04);
+.top-bar__logo--sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.8125rem;
 }
 
 .top-bar__brand {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  user-select: none;
+  min-width: 0;
 }
 
 .top-bar__title {
   font-family: var(--md-sys-typescale-display-font);
-  font-size: var(--md-sys-typescale-title-large);
+  font-size: clamp(1.125rem, 1rem + 0.5vw, var(--md-sys-typescale-title-large));
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   letter-spacing: 0.01em;
   line-height: 1.2;
+  text-wrap: balance;
 }
 
 .top-bar__subtitle {
@@ -108,7 +150,74 @@ body {
 .top-bar__actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-sm);
+}
+
+/* Theme toggle icon branching driven by meta[name="color-scheme"] + system preference */
+.theme-option-light {
+  display: none;
+}
+
+.theme-option-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .theme-option-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .theme-option-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .theme-option-light {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .theme-option-dark {
+    display: none;
+  }
+}
+
+/* Explicit anchors for top-bar interest tooltips (supports both native and anchor polyfill) */
+#btn-theme {
+  anchor-name: --anchor-theme;
+}
+
+#btn-report-issue {
+  anchor-name: --anchor-report;
+}
+
+#btn-about {
+  anchor-name: --anchor-about;
+}
+
+#btn-github {
+  anchor-name: --anchor-github;
+}
+
+#tooltip-theme {
+  position-anchor: --anchor-theme;
+}
+
+#tooltip-report {
+  position-anchor: --anchor-report;
+}
+
+#tooltip-about {
+  position-anchor: --anchor-about;
+}
+
+#tooltip-github {
+  position-anchor: --anchor-github;
 }
 
 /* ---------- Main Application Layout ---------- */
@@ -116,10 +225,10 @@ body {
   flex: 1;
   width: 100%;
   max-width: 1400px;
-  margin: 0 auto;
+  margin-inline: auto;
   padding: var(--space-lg);
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 460px);
+  grid-template-columns: minmax(0, 1.25fr) minmax(min(100%, 320px), 460px);
   gap: var(--space-lg);
   align-items: start;
 }
@@ -137,7 +246,7 @@ body {
   flex-direction: column;
   gap: var(--space-md);
   position: sticky;
-  top: calc(64px + var(--space-lg));
+  top: calc(4rem + var(--space-lg));
   min-width: 0;
 }
 
@@ -152,6 +261,7 @@ body {
 .row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-md);
 }
 
@@ -174,96 +284,138 @@ body {
   width: 100%;
 }
 
-/* Custom Sober Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Legacy WebKit Scrollbar Fallback */
+@supports not (scrollbar-color: auto) {
+  html,
+  .session-gallery {
+    scrollbar-width: auto;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: var(--md-sys-color-surface-container-low);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--md-sys-color-outline-variant);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--md-sys-color-outline);
-}
-
-/* ---------- CSS Tooltips (PyFDA-Web Style) ---------- */
-[data-tooltip] {
-  position: relative;
-}
-
-[data-tooltip]::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
+/* ---------- Interest-Triggered Native Popover Tooltips ---------- */
+.md-tooltip[popover="hint"] {
+  position: fixed;
+  inset: auto;
+  top: calc(anchor(bottom) + 8px);
+  right: anchor(right);
+  margin: 0;
+  max-width: min(18rem, 90vw);
+  padding: 6px 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-extra-small);
   background: var(--md-sys-color-inverse-surface);
   color: var(--md-sys-color-inverse-on-surface);
-  padding: 6px 12px;
-  border-radius: var(--md-sys-shape-corner-extra-small);
   font-family: var(--md-sys-typescale-body-font);
   font-size: var(--md-sys-typescale-label-medium);
   font-weight: 500;
   letter-spacing: 0.02em;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
-  z-index: 2000;
+  line-height: 1.4;
   box-shadow: var(--md-sys-elevation-2);
+  opacity: 0;
+  transition-property: opacity, transform, display, overlay;
+  transition-duration: 150ms;
+  transition-timing-function: var(--md-sys-motion-easing-standard);
+  transition-behavior: allow-discrete;
 }
 
-[data-tooltip]:hover::after {
+@media (prefers-reduced-motion: no-preference) {
+  .md-tooltip[popover="hint"] {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-tooltip[popover="hint"] {
+    transition-duration: 80ms;
+  }
+}
+
+.md-tooltip[popover="hint"]:is(:popover-open, .\:popover-open) {
+  display: block;
   opacity: 1;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    transform: translateY(0);
+
+    @starting-style {
+      transform: translateY(-4px);
+    }
+  }
 }
 
-/* Right-aligned tooltips at the edge of screen */
-.top-bar__actions > [data-tooltip]:last-child::after {
-  left: auto;
-  right: 0;
-  transform: none;
-}
-
-/* ---------- Toast System (PyFDA-Web Style) ---------- */
-#toast-container {
+/* ---------- Toast System (Top Layer popover="manual") ---------- */
+#toast-container[popover="manual"] {
   position: fixed;
-  bottom: var(--space-lg);
-  right: var(--space-lg);
+  inset: auto;
+  bottom: max(var(--space-lg), env(safe-area-inset-bottom, 0px));
+  right: max(var(--space-lg), env(safe-area-inset-inline-end, 0px));
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  overflow: visible;
+  max-width: min(24rem, calc(100vw - 2 * var(--space-sm)));
+}
+
+#toast-container[popover="manual"]:is(:popover-open, .\:popover-open) {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  z-index: 6000;
-  pointer-events: none;
 }
 
 .toast {
   background: var(--md-sys-color-inverse-surface);
   color: var(--md-sys-color-inverse-on-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: var(--md-sys-shape-corner-small);
-  padding: 12px 20px;
+  padding: 10px 14px;
   font-family: var(--md-sys-typescale-body-font);
   font-size: var(--md-sys-typescale-body-medium);
   box-shadow: var(--md-sys-elevation-3);
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  pointer-events: auto;
   opacity: 0;
-  transform: translateY(12px);
   transition: opacity var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
               transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-emphasized);
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .toast {
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition-duration: 80ms;
+  }
+}
+
 .toast.show {
   opacity: 1;
-  transform: translateY(0);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transform: translateY(0);
+  }
 }
 
 .toast.error {
@@ -276,6 +428,37 @@ body {
   color: var(--md-sys-color-on-success);
 }
 
+.toast__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast__message {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast__close {
+  flex-shrink: 0;
+  min-width: var(--target-size);
+  min-height: var(--target-size);
+  padding: 4px;
+  border: none;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast__close:hover {
+  background: rgb(128 128 128 / 0.2);
+}
+
 /* ---------- Responsive Breakpoints ---------- */
 @media (max-width: 1024px) {
   .app-main {
@@ -285,13 +468,13 @@ body {
 
   .preview-column {
     position: static;
-    order: -1; /* Place preview at top on smaller screens so users see their QR code immediately */
   }
 }
 
 @media (max-width: 600px) {
   .top-bar {
-    padding: 0 var(--space-sm);
+    padding-inline: max(var(--space-sm), env(safe-area-inset-inline-start, 0px))
+                    max(var(--space-sm), env(safe-area-inset-inline-end, 0px));
     gap: var(--space-sm);
   }
 
@@ -299,19 +482,16 @@ body {
     display: none;
   }
 
-  .top-bar__title {
-    font-size: 18px;
-  }
-
   .app-main {
     padding: var(--space-sm);
     gap: var(--space-sm);
   }
 
-  #toast-container {
-    left: var(--space-sm);
-    right: var(--space-sm);
-    bottom: var(--space-sm);
+  #toast-container[popover="manual"] {
+    left: max(var(--space-sm), env(safe-area-inset-inline-start, 0px));
+    right: max(var(--space-sm), env(safe-area-inset-inline-end, 0px));
+    bottom: max(var(--space-sm), env(safe-area-inset-bottom, 0px));
+    max-width: none;
   }
 
   .toast {

@@ -1,10 +1,29 @@
 <!DOCTYPE html>
-<html lang="en" translate="no" data-theme="dark">
+<html lang="en" translate="no">
 
 <head>
   <meta charset="UTF-8">
   <meta name="google" content="notranslate">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="text-scale" content="scale">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <!-- Color Scheme & FOUC Prevention -->
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" id="meta-theme-color" content="#3a5ba9">
+  <script>
+    try {
+      const storedTheme = localStorage.getItem('qr-theme-v2');
+      const schemeMeta = document.querySelector('meta[name="color-scheme"]');
+      const themeMeta = document.getElementById('meta-theme-color');
+      if (storedTheme === 'light' || storedTheme === 'dark') {
+        if (schemeMeta) schemeMeta.content = storedTheme;
+        if (themeMeta) themeMeta.content = storedTheme === 'dark' ? '#121318' : '#3a5ba9';
+      } else if (themeMeta && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        themeMeta.content = '#121318';
+      }
+    } catch {}
+  </script>
 
   <!-- SEO -->
   <title>QR Code Generator — Free &amp; Open Source Vector QR Studio</title>
@@ -32,9 +51,6 @@
   <meta name="twitter:description"
     content="Design, customize, and export high-resolution QR codes with gradients, custom shapes, and center logos. 100% private, client-side, and open source.">
   <meta name="twitter:image" content="https://borish127.github.io/qrcode-generator/preview-thumbnail.png">
-
-  <!-- Theme Color -->
-  <meta name="theme-color" id="meta-theme-color" content="#121318">
 
   <!-- Fonts (Outfit for display & Inter for body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -74,6 +90,35 @@
     }
   }
   </script>
+
+  <!-- Deferred Application Scripts -->
+  <script defer
+    src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"
+    integrity="sha384-P7sw4KeI1SDhOs6wYFsBysIIHFqMTgG4y9vunEfL8ZuV0WhnHsh9MRu9Rso17MtY"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+  <script defer src="js/app.js"></script>
+
+  <!-- Conditional Progressive-Enhancement Polyfills -->
+  <script type="module">
+    if (!('commandForElement' in HTMLButtonElement.prototype)) {
+      import('https://esm.run/invokers-polyfill').catch(() => {
+        window.__invokerPolyfillFailed = true;
+      });
+    }
+    if (!Object.hasOwn(HTMLElement.prototype, 'popover')) {
+      import('https://unpkg.com/@oddbird/popover-polyfill@latest/dist/popover.min.js').catch(() => {});
+    }
+    if (!('interestForElement' in HTMLButtonElement.prototype)) {
+      import('https://unpkg.com/interestfor@latest').catch(() => {});
+    }
+    if (!CSS.supports('anchor-name: --a')) {
+      import('https://unpkg.com/@oddbird/css-anchor-positioning').catch(() => {});
+    }
+    if (!('switch' in HTMLInputElement.prototype)) {
+      import('https://esm.run/input-switch-polyfill').catch(() => {});
+    }
+  </script>
 </head>
 
 <body>
@@ -105,9 +150,9 @@
 
     <!-- ---- Top App Bar ---- -->
     <header class="top-bar">
-      <div class="top-bar__logo" id="app-logo" title="QR Code Generator">QR</div>
+      <div class="top-bar__logo" aria-hidden="true">QR</div>
       <div class="top-bar__brand">
-        <span class="top-bar__title">QR Code Generator</span>
+        <h1 class="top-bar__title">QR Code Generator</h1>
         <span class="top-bar__subtitle">by borish127</span>
       </div>
 
@@ -115,31 +160,41 @@
 
       <div class="top-bar__actions">
         <!-- Theme Toggle -->
-        <button class="md-btn--icon" id="btn-theme" data-tooltip="Toggle Theme" aria-label="Toggle theme">
-          <svg class="theme-icon-sun hidden" width="22" height="22" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5" />
-            <line x1="12" y1="1" x2="12" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="23" />
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-            <line x1="1" y1="12" x2="3" y2="12" />
-            <line x1="21" y1="12" x2="23" y2="12" />
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-          </svg>
-          <svg class="theme-icon-moon" width="22" height="22" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
+        <button type="button" class="md-btn--icon" id="btn-theme" interestfor="tooltip-theme">
+          <span class="theme-option-light">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+            <span class="visually-hidden">Switch to light theme</span>
+          </span>
+          <span class="theme-option-dark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <span class="visually-hidden">Switch to dark theme</span>
+          </span>
         </button>
+        <div id="tooltip-theme" class="md-tooltip" popover="hint">
+          <span class="theme-option-light">Switch to light theme</span>
+          <span class="theme-option-dark">Switch to dark theme</span>
+        </div>
 
         <!-- Report Bug / Suggestion -->
         <a href="https://github.com/borish127/qrcode-generator/issues" target="_blank" rel="noopener noreferrer"
-          class="md-btn--icon" id="btn-report-issue" data-tooltip="Report Bug or Suggestion"
+          class="md-btn--icon" id="btn-report-issue" interestfor="tooltip-report"
           aria-label="Report Bug or Suggestion">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="m8 2 1.88 1.88" />
             <path d="M14.12 3.88 16 2" />
             <path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" />
@@ -153,27 +208,30 @@
             <path d="M17.2 17c2.1.1 3.8 1.9 3.8 4" />
           </svg>
         </a>
+        <div id="tooltip-report" class="md-tooltip" popover="hint">Report Bug or Suggestion</div>
 
         <!-- About Modal Button -->
-        <button class="md-btn--icon" id="btn-about" data-tooltip="About QR Code Generator"
-          aria-label="About application">
+        <button type="button" class="md-btn--icon" id="btn-about" command="show-modal" commandfor="about-modal"
+          interestfor="tooltip-about" aria-label="About QR Code Generator">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="16" x2="12" y2="12" />
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
         </button>
+        <div id="tooltip-about" class="md-tooltip" popover="hint">About QR Code Generator</div>
 
         <!-- GitHub Repository -->
         <a href="https://github.com/borish127/qrcode-generator" target="_blank" rel="noopener noreferrer"
-          class="md-btn--icon" id="btn-github" data-tooltip="View on GitHub" aria-label="View on GitHub">
+          class="md-btn--icon" id="btn-github" interestfor="tooltip-github" aria-label="View on GitHub">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path
               d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
           </svg>
         </a>
+        <div id="tooltip-github" class="md-tooltip" popover="hint">View on GitHub</div>
       </div>
     </header>
 
@@ -181,12 +239,12 @@
     <main class="app-main">
 
       <!-- ────────── Left Column: Design Controls ────────── -->
-      <section class="controls-column" aria-label="Design Controls">
+      <div class="controls-column">
 
         <!-- 1. Content Card -->
-        <div class="md-card">
-          <div class="md-card__title">
-            <span class="md-card__title-icon">
+        <section class="md-card">
+          <h2 class="md-card__title">
+            <span class="md-card__title-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -194,19 +252,41 @@
               </svg>
             </span>
             Content
+          </h2>
+          <div class="col gap-md">
+            <div class="md-field">
+              <input class="md-field__input" type="text" id="qr-text" placeholder=" "
+                value="https://borish127.github.io/qrcode-generator/"
+                aria-describedby="qr-text-helper"
+                autocorrect="off" autocapitalize="none" spellcheck="false">
+              <label class="md-field__label" for="qr-text">URL or Text Payload</label>
+              <div class="md-field__helper" id="qr-text-helper">Enter any link, text, contact information, or Wi-Fi string</div>
+            </div>
+
+            <div class="range-group">
+              <div class="range-header">
+                <span id="qr-ecl-heading">QR Quality (Error Correction)</span>
+                <span class="range-value-badge" id="qr-ecl-label">High (30%)</span>
+              </div>
+              <div class="md-segmented" role="radiogroup" aria-labelledby="qr-ecl-heading" aria-describedby="qr-ecl-helper">
+                <input type="radio" name="qr-ecl" id="ecl-l" value="L">
+                <label for="ecl-l">Low (7%)</label>
+                <input type="radio" name="qr-ecl" id="ecl-m" value="M">
+                <label for="ecl-m">Med (15%)</label>
+                <input type="radio" name="qr-ecl" id="ecl-q" value="Q">
+                <label for="ecl-q">Qrt (25%)</label>
+                <input type="radio" name="qr-ecl" id="ecl-h" value="H" checked>
+                <label for="ecl-h">High (30%)</label>
+              </div>
+              <div class="md-field__helper" id="qr-ecl-helper">Higher quality improves scan resilience with logos or wear; lower quality creates simpler dot grids</div>
+            </div>
           </div>
-          <div class="md-field">
-            <input class="md-field__input" type="text" id="qr-text" placeholder=" "
-              value="https://borish127.github.io/qrcode-generator/">
-            <label class="md-field__label" for="qr-text">URL or Text Payload</label>
-            <div class="md-field__helper">Enter any link, text, contact information, or Wi-Fi string</div>
-          </div>
-        </div>
+        </section>
 
         <!-- 2. Background Card -->
-        <div class="md-card">
-          <div class="md-card__title">
-            <span class="md-card__title-icon">
+        <section class="md-card">
+          <h2 class="md-card__title">
+            <span class="md-card__title-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
@@ -218,7 +298,7 @@
               </svg>
             </span>
             Background
-          </div>
+          </h2>
 
           <div class="col gap-md">
             <!-- Mode Segmented -->
@@ -246,32 +326,32 @@
               <div class="row">
                 <div class="flex-1 color-picker-row">
                   <div class="color-swatch-wrapper">
-                    <input type="color" id="bg-grad-color1" value="#d8e2ff" aria-label="Gradient start color">
+                    <input type="color" id="bg-grad-color1" value="#d8e2ff" aria-label="Background gradient start color">
                   </div>
                   <span class="color-hex-label" id="bg-grad-hex1">#d8e2ff</span>
                 </div>
                 <div class="flex-1 color-picker-row">
                   <div class="color-swatch-wrapper">
-                    <input type="color" id="bg-grad-color2" value="#ffffff" aria-label="Gradient end color">
+                    <input type="color" id="bg-grad-color2" value="#ffffff" aria-label="Background gradient end color">
                   </div>
                   <span class="color-hex-label" id="bg-grad-hex2">#ffffff</span>
                 </div>
               </div>
               <div class="range-group">
                 <div class="range-header">
-                  <span>Gradient Angle</span>
+                  <label for="bg-grad-angle">Gradient Angle</label>
                   <span class="range-value-badge" id="bg-grad-angle-val">135°</span>
                 </div>
-                <input type="range" id="bg-grad-angle" min="0" max="360" value="135" aria-label="Gradient angle">
+                <input type="range" id="bg-grad-angle" min="0" max="360" value="135">
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- 3. Dot Style Card -->
-        <div class="md-card">
-          <div class="md-card__title">
-            <span class="md-card__title-icon">
+        <section class="md-card">
+          <h2 class="md-card__title">
+            <span class="md-card__title-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="7" height="7" />
@@ -281,7 +361,7 @@
               </svg>
             </span>
             Dot Matrix
-          </div>
+          </h2>
 
           <div class="col gap-md">
             <!-- Shape Selection -->
@@ -294,7 +374,7 @@
                 <option value="square">Square (Classic)</option>
                 <option value="extra-rounded">Extra Rounded</option>
               </select>
-              <label class="md-select__label">Dot Shape</label>
+              <label class="md-select__label" for="dot-shape">Dot Shape</label>
             </div>
 
             <!-- Color Mode -->
@@ -320,32 +400,32 @@
               <div class="row">
                 <div class="flex-1 color-picker-row">
                   <div class="color-swatch-wrapper">
-                    <input type="color" id="dot-grad-color1" value="#1f4490" aria-label="Dot gradient start">
+                    <input type="color" id="dot-grad-color1" value="#1f4490" aria-label="Dot gradient start color">
                   </div>
                   <span class="color-hex-label" id="dot-grad-hex1">#1f4490</span>
                 </div>
                 <div class="flex-1 color-picker-row">
                   <div class="color-swatch-wrapper">
-                    <input type="color" id="dot-grad-color2" value="#3a5ba9" aria-label="Dot gradient end">
+                    <input type="color" id="dot-grad-color2" value="#3a5ba9" aria-label="Dot gradient end color">
                   </div>
                   <span class="color-hex-label" id="dot-grad-hex2">#3a5ba9</span>
                 </div>
               </div>
               <div class="range-group">
                 <div class="range-header">
-                  <span>Gradient Angle</span>
+                  <label for="dot-grad-angle">Gradient Angle</label>
                   <span class="range-value-badge" id="dot-grad-angle-val">135°</span>
                 </div>
-                <input type="range" id="dot-grad-angle" min="0" max="360" value="135" aria-label="Dot gradient angle">
+                <input type="range" id="dot-grad-angle" min="0" max="360" value="135">
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- 4. Corner Squares Card -->
-        <div class="md-card">
-          <div class="md-card__title">
-            <span class="md-card__title-icon">
+        <section class="md-card">
+          <h2 class="md-card__title">
+            <span class="md-card__title-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="3" />
@@ -353,7 +433,7 @@
               </svg>
             </span>
             Corner Eye Frames
-          </div>
+          </h2>
 
           <div class="col gap-md">
             <!-- Shape Selection -->
@@ -363,7 +443,7 @@
                 <option value="extra-rounded">Extra Rounded</option>
                 <option value="dot">Circle (Dot)</option>
               </select>
-              <label class="md-select__label">Corner Frame Shape</label>
+              <label class="md-select__label" for="corner-sq-shape">Corner Frame Shape</label>
             </div>
 
             <!-- Color Mode -->
@@ -389,32 +469,32 @@
               <div class="row">
                 <div class="flex-1 color-picker-row">
                   <div class="color-swatch-wrapper">
-                    <input type="color" id="csq-grad-color1" value="#001a41" aria-label="Frame gradient start">
+                    <input type="color" id="csq-grad-color1" value="#001a41" aria-label="Frame gradient start color">
                   </div>
                   <span class="color-hex-label" id="csq-grad-hex1">#001a41</span>
                 </div>
                 <div class="flex-1 color-picker-row">
                   <div class="color-swatch-wrapper">
-                    <input type="color" id="csq-grad-color2" value="#3a5ba9" aria-label="Frame gradient end">
+                    <input type="color" id="csq-grad-color2" value="#3a5ba9" aria-label="Frame gradient end color">
                   </div>
                   <span class="color-hex-label" id="csq-grad-hex2">#3a5ba9</span>
                 </div>
               </div>
               <div class="range-group">
                 <div class="range-header">
-                  <span>Gradient Angle</span>
+                  <label for="csq-grad-angle">Gradient Angle</label>
                   <span class="range-value-badge" id="csq-grad-angle-val">135°</span>
                 </div>
-                <input type="range" id="csq-grad-angle" min="0" max="360" value="135" aria-label="Frame gradient angle">
+                <input type="range" id="csq-grad-angle" min="0" max="360" value="135">
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- 5. Corner Dots Card -->
-        <div class="md-card">
-          <div class="md-card__title">
-            <span class="md-card__title-icon">
+        <section class="md-card">
+          <h2 class="md-card__title">
+            <span class="md-card__title-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="9" />
@@ -422,7 +502,7 @@
               </svg>
             </span>
             Corner Eye Centers
-          </div>
+          </h2>
 
           <div class="col gap-md">
             <!-- Shape Selection -->
@@ -431,7 +511,7 @@
                 <option value="dot" selected>Dot (Circle)</option>
                 <option value="square">Square</option>
               </select>
-              <label class="md-select__label">Eye Center Shape</label>
+              <label class="md-select__label" for="corner-dot-shape">Eye Center Shape</label>
             </div>
 
             <!-- Color Mode -->
@@ -457,33 +537,32 @@
               <div class="row">
                 <div class="flex-1 color-picker-row">
                   <div class="color-swatch-wrapper">
-                    <input type="color" id="cd-grad-color1" value="#001a41" aria-label="Eye center gradient start">
+                    <input type="color" id="cd-grad-color1" value="#001a41" aria-label="Eye center gradient start color">
                   </div>
                   <span class="color-hex-label" id="cd-grad-hex1">#001a41</span>
                 </div>
                 <div class="flex-1 color-picker-row">
                   <div class="color-swatch-wrapper">
-                    <input type="color" id="cd-grad-color2" value="#3a5ba9" aria-label="Eye center gradient end">
+                    <input type="color" id="cd-grad-color2" value="#3a5ba9" aria-label="Eye center gradient end color">
                   </div>
                   <span class="color-hex-label" id="cd-grad-hex2">#3a5ba9</span>
                 </div>
               </div>
               <div class="range-group">
                 <div class="range-header">
-                  <span>Gradient Angle</span>
+                  <label for="cd-grad-angle">Gradient Angle</label>
                   <span class="range-value-badge" id="cd-grad-angle-val">135°</span>
                 </div>
-                <input type="range" id="cd-grad-angle" min="0" max="360" value="135"
-                  aria-label="Eye center gradient angle">
+                <input type="range" id="cd-grad-angle" min="0" max="360" value="135">
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- 6. Center Logo Card -->
-        <div class="md-card">
-          <div class="md-card__title">
-            <span class="md-card__title-icon">
+        <section class="md-card">
+          <h2 class="md-card__title">
+            <span class="md-card__title-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -492,27 +571,27 @@
               </svg>
             </span>
             Center Logo
-          </div>
+          </h2>
 
           <div class="col gap-md">
-            <!-- Dropzone -->
-            <div class="upload-dropzone" id="logo-upload-area">
-              <input type="file" id="logo-input" accept="image/*" class="hidden">
+            <!-- Dropzone Trigger -->
+            <button type="button" class="upload-dropzone" id="logo-upload-area" aria-describedby="logo-upload-hint">
               <svg class="upload-dropzone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              <div class="upload-dropzone__title">Click or drop image here</div>
-              <div class="upload-dropzone__hint">PNG, SVG, JPEG, or WebP (max 5 MB)</div>
-            </div>
+              <span class="upload-dropzone__title">Click or drop image here</span>
+              <span class="upload-dropzone__hint" id="logo-upload-hint">PNG, SVG, JPEG, or WebP (max 5 MB)</span>
+            </button>
+            <input type="file" id="logo-input" accept="image/*" class="hidden">
 
             <!-- Logo Preview Badge -->
             <div class="logo-preview-badge hidden" id="logo-preview-container">
-              <img id="logo-preview-img" src="" alt="Logo thumbnail">
+              <img id="logo-preview-img" src="" alt="Uploaded center logo preview" width="36" height="36">
               <span class="logo-preview-badge__name" id="logo-filename"></span>
-              <button class="md-btn md-btn--outlined" id="remove-logo-btn" style="padding: 4px 10px; font-size: 12px;">
+              <button type="button" class="md-btn md-btn--outlined md-btn--sm" id="remove-logo-btn">
                 Remove
               </button>
             </div>
@@ -521,40 +600,37 @@
             <div id="logo-options" class="col gap-md hidden">
               <div class="range-group">
                 <div class="range-header">
-                  <span>Logo Scale</span>
+                  <label for="logo-size">Logo Scale</label>
                   <span class="range-value-badge" id="logo-size-val">30%</span>
                 </div>
-                <input type="range" id="logo-size" min="10" max="50" value="30" aria-label="Logo size percentage">
+                <input type="range" id="logo-size" min="10" max="50" value="30">
               </div>
 
               <div class="range-group" id="logo-margin-group">
                 <div class="range-header">
-                  <span>Logo Margin</span>
+                  <label for="logo-margin">Logo Margin</label>
                   <span class="range-value-badge" id="logo-margin-val">5px</span>
                 </div>
-                <input type="range" id="logo-margin" min="0" max="30" value="5" aria-label="Logo margin in pixels">
+                <input type="range" id="logo-margin" min="0" max="30" value="5">
               </div>
 
               <div class="switch-row" id="logo-mode-toggle">
-                <span class="switch-label" id="logo-mode-label">Clear dots behind logo</span>
-                <label class="md-switch">
-                  <input type="checkbox" id="logo-behind">
-                  <span class="md-switch__slider"></span>
-                </label>
+                <label class="switch-label" for="logo-behind" id="logo-mode-label">Clear dots behind logo</label>
+                <input type="checkbox" id="logo-behind" switch>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-      </section>
+      </div>
 
       <!-- ────────── Right Column: Sticky Preview, Export & Templates ────────── -->
-      <section class="preview-column" aria-label="Preview and Output">
+      <div class="preview-column">
 
         <!-- 1. Live Preview -->
-        <div class="md-card md-card--elevated">
-          <div class="md-card__title">
-            <span class="md-card__title-icon">
+        <section class="md-card md-card--elevated">
+          <h2 class="md-card__title">
+            <span class="md-card__title-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -562,15 +638,15 @@
               </svg>
             </span>
             Live Preview
-          </div>
+          </h2>
 
-          <div class="qr-preview-box" id="qr-preview"></div>
-        </div>
+          <div class="qr-preview-box" id="qr-preview" role="img" aria-label="Live QR code preview"></div>
+        </section>
 
         <!-- 2. Export Panel -->
-        <div class="md-card">
-          <div class="md-card__title">
-            <span class="md-card__title-icon">
+        <section class="md-card">
+          <h2 class="md-card__title">
+            <span class="md-card__title-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -579,12 +655,12 @@
               </svg>
             </span>
             Export &amp; Download
-          </div>
+          </h2>
 
           <div class="col gap-md">
             <!-- Resolution Selector -->
             <div>
-              <div class="range-header" style="margin-bottom: 6px;">
+              <div class="range-header export-res-header">
                 <span>Export Scale (Resolution)</span>
                 <span class="range-value-badge" id="export-res-label">4x (2048px)</span>
               </div>
@@ -602,27 +678,27 @@
 
             <!-- Download Button Row -->
             <div class="row">
-              <button class="md-btn md-btn--filled flex-1" id="download-png">
+              <button type="button" class="md-btn md-btn--filled flex-1" id="download-png">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 PNG
               </button>
-              <button class="md-btn md-btn--tonal flex-1" id="download-jpeg">
+              <button type="button" class="md-btn md-btn--tonal flex-1" id="download-jpeg">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 JPEG
               </button>
-              <button class="md-btn md-btn--outlined flex-1" id="download-svg">
+              <button type="button" class="md-btn md-btn--outlined flex-1" id="download-svg">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <polygon points="12 2 2 7 12 12 22 7 12 2" />
                   <polyline points="2 17 12 22 22 17" />
                   <polyline points="2 12 12 17 22 12" />
@@ -631,24 +707,24 @@
               </button>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- 3. Saved Templates & Storage -->
-        <div class="md-card">
-          <div class="md-card__title">
-            <span class="md-card__title-icon">
+        <section class="md-card">
+          <h2 class="md-card__title">
+            <span class="md-card__title-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
               </svg>
             </span>
             Templates &amp; Presets
-          </div>
+          </h2>
 
           <div class="col gap-md">
-            <button class="md-btn md-btn--tonal w-full" id="save-design-btn">
+            <button type="button" class="md-btn md-btn--tonal w-full" id="save-design-btn">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                 <polyline points="17 21 17 13 7 13 7 21" />
                 <polyline points="7 3 7 8 15 8" />
@@ -660,24 +736,24 @@
             <div class="session-gallery" id="session-gallery">
               <div class="gallery-empty">No saved designs yet</div>
             </div>
-            <div class="range-header" style="justify-content: flex-end;">
+            <div class="range-header gallery-counter">
               <span class="range-value-badge" id="gallery-limit-note">0 / 25 saved</span>
             </div>
 
             <!-- JSON Backup / Restore -->
             <div class="row">
-              <button class="md-btn md-btn--outlined flex-1" id="export-json-btn">
+              <button type="button" class="md-btn md-btn--outlined flex-1" id="export-json-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 Export JSON
               </button>
-              <button class="md-btn md-btn--outlined flex-1" id="import-json-btn">
+              <button type="button" class="md-btn md-btn--outlined flex-1" id="import-json-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="17 8 12 3 7 8" />
                   <line x1="12" y1="3" x2="12" y2="15" />
@@ -687,84 +763,81 @@
             </div>
             <input type="file" id="import-json-input" accept=".json" class="hidden">
           </div>
-        </div>
+        </section>
 
-      </section>
+      </div>
 
     </main>
 
   </div><!-- /.app-shell -->
 
-  <!-- ================= About Modal Backdrop (PyFDA-Web Style) ================= -->
-  <div class="md-modal-backdrop" id="about-modal-backdrop">
-    <div class="md-modal" id="about-modal" role="dialog" aria-modal="true" aria-labelledby="about-title">
-      <div class="md-modal__header">
-        <div class="md-modal__title" id="about-title">
-          <div class="top-bar__logo" style="width:32px;height:32px;font-size:13px;">QR</div>
-          QR Code Generator
-        </div>
-        <button class="md-btn--icon" id="btn-close-about" aria-label="Close about dialog">
+  <!-- ================= Native About Modal Dialog ================= -->
+  <dialog class="md-modal" id="about-modal" closedby="any" aria-labelledby="about-title">
+    <div class="md-modal__header">
+      <h2 class="md-modal__title" id="about-title">
+        <span class="top-bar__logo top-bar__logo--sm" aria-hidden="true">QR</span>
+        QR Code Generator
+      </h2>
+      <form method="dialog">
+        <button type="submit" class="md-btn--icon" id="btn-close-about" aria-label="Close about dialog">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
+      </form>
+    </div>
+
+    <div class="col gap-md">
+      <p class="about-lead">
+        A client-side vector and raster QR code studio built with modern web technologies.
+        Generates production-ready, highly styled QR codes with gradients, custom module geometry,
+        and branded center logos.
+      </p>
+
+      <div class="about-callout">
+        <div class="about-callout__title">100% Private &amp; Offline Ready</div>
+        <p class="about-callout__body">No tracking, no analytics, no external servers. Everything renders right in your browser canvas.</p>
       </div>
 
-      <div class="col gap-md">
-        <p style="font-size: 14px; color: var(--md-sys-color-on-surface-variant); line-height: 1.6;">
-          A client-side vector and raster QR code studio built with modern web technologies.
-          Generates production-ready, highly styled QR codes with gradients, custom module geometry,
-          and branded center logos.
-        </p>
+      <ul class="about-meta">
+        <li>&bull; <strong>Design System:</strong> Material Design 3 (MD3) Expressive</li>
+        <li>&bull; <strong>Core Engine:</strong> qr-code-styling (Canvas &amp; SVG)</li>
+        <li>&bull; <strong>License:</strong> GNU General Public License v3.0 (GPLv3)</li>
+        <li>&bull; <strong>Author:</strong> borish127</li>
+      </ul>
 
-        <div style="background: var(--md-sys-color-surface-container); padding: 12px 16px; border-radius: var(--md-sys-shape-corner-medium); border: 1px solid var(--md-sys-color-outline-variant); font-size: 13px;">
-          <div style="font-weight: 600; margin-bottom: 4px; color: var(--md-sys-color-on-surface);">100% Private &amp; Offline Ready</div>
-          <div style="color: var(--md-sys-color-on-surface-variant);">No tracking, no analytics, no external servers. Everything renders right in your browser canvas.</div>
-        </div>
-
-        <div style="font-size: 13px; color: var(--md-sys-color-on-surface-variant); line-height: 1.8;">
-          <div>&bull; <strong>Design System:</strong> Material Design 3 (MD3) Expressive</div>
-          <div>&bull; <strong>Core Engine:</strong> qr-code-styling (Canvas &amp; SVG)</div>
-          <div>&bull; <strong>License:</strong> GNU General Public License v3.0 (GPLv3)</div>
-          <div>&bull; <strong>Author:</strong> borish127</div>
-        </div>
-
-        <div class="col gap-sm" style="margin-top: 8px;">
-          <a href="https://github.com/borish127/qrcode-generator" target="_blank" rel="noopener noreferrer"
-            class="md-btn md-btn--filled w-full" style="text-decoration: none;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path
-                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-            </svg>
-            View on GitHub
-          </a>
-          <a href="https://github.com/borish127/qrcode-generator/issues" target="_blank" rel="noopener noreferrer"
-            class="md-btn md-btn--outlined w-full" style="text-decoration: none;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="m8 2 1.88 1.88" />
-              <path d="M14.12 3.88 16 2" />
-              <path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" />
-              <path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6" />
-              <path d="M12 20v-9" />
-              <path d="M6.53 9C4.6 8.8 3 7.1 3 5" />
-            </svg>
-            Report Bug or Suggestion
-          </a>
-        </div>
+      <div class="col gap-sm about-actions">
+        <a href="https://github.com/borish127/qrcode-generator" target="_blank" rel="noopener noreferrer"
+          class="md-btn md-btn--filled w-full">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path
+              d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+          </svg>
+          View on GitHub
+        </a>
+        <a href="https://github.com/borish127/qrcode-generator/issues" target="_blank" rel="noopener noreferrer"
+          class="md-btn md-btn--outlined w-full">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m8 2 1.88 1.88" />
+            <path d="M14.12 3.88 16 2" />
+            <path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" />
+            <path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6" />
+            <path d="M12 20v-9" />
+            <path d="M6.53 9C4.6 8.8 3 7.1 3 5" />
+          </svg>
+          Report Bug or Suggestion
+        </a>
       </div>
     </div>
-  </div>
+  </dialog>
 
-  <!-- ================= Toast Container (PyFDA-Web Style) ================= -->
-  <div id="toast-container" aria-live="polite"></div>
-
-  <!-- ================= Scripts ================= -->
-  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"></script>
-  <script src="js/app.js"></script>
+  <!-- ================= Toast Container & Live Announcer ================= -->
+  <div id="toast-container" popover="manual" role="region" aria-label="Notifications"></div>
+  <div id="toast-announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
 </body>
 
 </html>

@@ -17,8 +17,9 @@ const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
 const dom = {
-  // Input
+  // Input & Quality
   qrText: $('#qr-text'),
+  qrEclLabel: $('#qr-ecl-label'),
 
   // Background
   bgColor: $('#bg-color'),
@@ -104,43 +105,376 @@ const dom = {
   importJsonBtn: $('#import-json-btn'),
   importJsonInp: $('#import-json-input'),
 
-  // Top Bar & Actions
+  // Top Bar & Theme
   btnTheme: $('#btn-theme'),
-  themeIconSun: $('.theme-icon-sun'),
-  themeIconMoon: $('.theme-icon-moon'),
+  schemeMeta: $('meta[name="color-scheme"]'),
   metaThemeColor: $('#meta-theme-color'),
 
   // About Modal
   btnAbout: $('#btn-about'),
-  aboutModalBackdrop: $('#about-modal-backdrop'),
   aboutModal: $('#about-modal'),
-  btnCloseAbout: $('#btn-close-about'),
 
-  // Toast Container
+  // Toast Container & Announcer
   toastContainer: $('#toast-container'),
+  toastAnnouncer: $('#toast-announcer'),
 };
 
 /* ==============================================================
-   1. TOAST NOTIFICATION SYSTEM (PyFDA-Web Style)
+   0b. INTEREST HINT & TOP-LAYER HELPERS
    ============================================================== */
 
-function showToast(message, type = 'info', duration = 3000) {
+/**
+ * Wire accessible ARIA relationships for [interestfor] hint popovers upfront,
+ * before any polyfill runs.
+ */
+function wireInterestHints(root = document) {
+  const ownedTriggers = new WeakSet();
+
+  const normalize = (str) => (str || '').replace(/\s+/g, ' ').trim();
+
+  const getAccessibleName = (el) => {
+    const labelledBy = el.getAttribute('aria-labelledby');
+    if (labelledBy) {
+      const text = labelledBy
+        .split(/\s+/)
+        .map((id) => document.getElementById(id)?.textContent || '')
+        .join(' ');
+      if (normalize(text)) return normalize(text);
+    }
+    if (el.hasAttribute('aria-label')) {
+      return normalize(el.getAttribute('aria-label'));
+    }
+    const text = el.innerText || el.textContent || '';
+    if (normalize(text)) return normalize(text);
+    const imgWithAlt = el.querySelector('img[alt]');
+    if (imgWithAlt && normalize(imgWithAlt.alt)) return normalize(imgWithAlt.alt);
+    return normalize(el.getAttribute('title'));
+  };
+
+  root.querySelectorAll('[interestfor]').forEach((trigger) => {
+    const targetId = trigger.getAttribute('interestfor');
+    if (!targetId) return;
+    const hint = document.getElementById(targetId);
+    if (!hint || hint.getAttribute('popover') !== 'hint') return;
+
+    const hintText = normalize(hint.innerText || hint.textContent);
+    const triggerName = getAccessibleName(trigger);
+
+    if (hintText && triggerName && hintText === triggerName) {
+      return;
+    }
+
+    if (!hint.hasAttribute('role')) {
+      hint.setAttribute('role', 'tooltip');
+    }
+
+    if (!triggerName) {
+      if (!trigger.hasAttribute('aria-labelledby')) {
+        trigger.setAttribute('aria-labelledby', targetId);
+      }
+      return;
+    }
+
+    const activationTarget = trigger.getAttribute('popovertarget') || trigger.getAttribute('commandfor');
+    if (activationTarget === targetId) {
+      if (!trigger.hasAttribute('aria-expanded')) {
+        trigger.setAttribute('aria-expanded', String(hint.matches(':popover-open')));
+        ownedTriggers.add(trigger);
+      }
+    } else if (!trigger.hasAttribute('aria-describedby')) {
+      trigger.setAttribute('aria-describedby', targetId);
+    }
+  });
+
+  if (!wireInterestHints._toggleWired) {
+    wireInterestHints._toggleWired = true;
+    document.addEventListener(
+      'toggle',
+      (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement) || target.getAttribute('popover') !== 'hint' || !target.id) {
+          return;
+        }
+        const expanded = String(event.newState === 'open');
+        document.querySelectorAll(`[interestfor="${CSS.escape(target.id)}"]`).forEach((trigger) => {
+          if (ownedTriggers.has(trigger)) {
+            trigger.setAttribute('aria-expanded', expanded);
+          }
+        });
+      },
+      true
+    );
+  }
+}
+
+// Run immediately while deferred DOM is parsed, before module polyfills load
+wireInterestHints();
+
+// Fallback for browsers where popover="hint" degrades to manual on toggletips
+(() => {
+  const probe = document.createElement('div');
+  probe.setAttribute('popover', 'hint');
+  if ('popover' in probe && probe.popover !== 'hint') {
+    document.addEventListener(
+      'beforetoggle',
+      ({ target, newState }) => {
+        if (!(target instanceof HTMLElement) || !target.id) return;
+        const toggletip =
+          target.getAttribute('popover') === 'hint' &&
+          document.querySelector(`[popovertarget="${CSS.escape(target.id)}"]`);
+        if (newState === 'open' && toggletip) {
+          target.setAttribute('popover', 'auto');
+        }
+      },
+      true
+    );
+  }
+})();
+
+let supportsDisplayTransition;
+function canTransitionDisplay() {
+  if (supportsDisplayTransition !== undefined) return supportsDisplayTransition;
+  if (!window.CSS?.supports?.('transition-behavior', 'allow-discrete') || !document.body) {
+    return false;
+  }
+  const probe = document.createElement('div');
+  probe.style.cssText = 'transition: display 1s allow-discrete !important; display: block;';
+  document.body.appendChild(probe);
+  getComputedStyle(probe).display;
+  probe.style.display = 'none';
+  supportsDisplayTransition = getComputedStyle(probe).display === 'block';
+  probe.remove();
+  return supportsDisplayTransition;
+}
+
+function supportsTopLayerExit() {
+  return Boolean(window.CSS?.supports?.('overlay', 'auto') && canTransitionDisplay());
+}
+
+async function closeTopLayer(dialog) {
+  if (!dialog || !dialog.open) return;
+  if (!supportsTopLayerExit()) {
+    dialog.setAttribute('data-closing', '');
+    const animations = dialog.getAnimations({ subtree: true });
+    if (animations.length > 0) {
+      await Promise.race([
+        Promise.allSettled(animations.map((a) => a.finished)),
+        new Promise((r) => setTimeout(r, 2000)),
+      ]);
+    }
+    if (!dialog.hasAttribute('data-closing')) return;
+    dialog.removeAttribute('data-closing');
+  }
+  dialog.close();
+}
+
+/* ==============================================================
+   1. TOAST NOTIFICATION SYSTEM
+   ============================================================== */
+
+function createStatusIcon(type) {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('width', '18');
+  svg.setAttribute('height', '18');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+
+  if (type === 'success') {
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('cx', '12');
+    circle.setAttribute('cy', '12');
+    circle.setAttribute('r', '10');
+    const path = document.createElementNS(svgNS, 'polyline');
+    path.setAttribute('points', '9 12 11 14 15 10');
+    svg.append(circle, path);
+  } else if (type === 'error') {
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('cx', '12');
+    circle.setAttribute('cy', '12');
+    circle.setAttribute('r', '10');
+    const l1 = document.createElementNS(svgNS, 'line');
+    l1.setAttribute('x1', '12');
+    l1.setAttribute('y1', '8');
+    l1.setAttribute('x2', '12');
+    l1.setAttribute('y2', '12');
+    const l2 = document.createElementNS(svgNS, 'line');
+    l2.setAttribute('x1', '12');
+    l2.setAttribute('y1', '16');
+    l2.setAttribute('x2', '12.01');
+    l2.setAttribute('y2', '16');
+    svg.append(circle, l1, l2);
+  } else {
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('cx', '12');
+    circle.setAttribute('cy', '12');
+    circle.setAttribute('r', '10');
+    const l1 = document.createElementNS(svgNS, 'line');
+    l1.setAttribute('x1', '12');
+    l1.setAttribute('y1', '16');
+    l1.setAttribute('x2', '12');
+    l1.setAttribute('y2', '12');
+    const l2 = document.createElementNS(svgNS, 'line');
+    l2.setAttribute('x1', '12');
+    l2.setAttribute('y1', '8');
+    l2.setAttribute('x2', '12.01');
+    l2.setAttribute('y2', '8');
+    svg.append(circle, l1, l2);
+  }
+
+  return svg;
+}
+
+function createCloseIcon() {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('width', '16');
+  svg.setAttribute('height', '16');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+
+  const l1 = document.createElementNS(svgNS, 'line');
+  l1.setAttribute('x1', '18');
+  l1.setAttribute('y1', '6');
+  l1.setAttribute('x2', '6');
+  l1.setAttribute('y2', '18');
+  const l2 = document.createElementNS(svgNS, 'line');
+  l2.setAttribute('x1', '6');
+  l2.setAttribute('y1', '6');
+  l2.setAttribute('x2', '18');
+  l2.setAttribute('y2', '18');
+  svg.append(l1, l2);
+  return svg;
+}
+
+function announceNotification(message) {
+  if (typeof document.ariaNotify === 'function') {
+    document.ariaNotify(message);
+    return;
+  }
+  if (dom.toastAnnouncer) {
+    dom.toastAnnouncer.textContent = '';
+    requestAnimationFrame(() => {
+      dom.toastAnnouncer.textContent = message;
+    });
+  }
+}
+
+function showToast(message, type = 'info', duration = 3500) {
   if (!dom.toastContainer) return;
+  // Do not surface background toasts while a modal dialog makes outside DOM inert
+  if (dom.aboutModal && dom.aboutModal.open) return;
+
+  const returnFocusTarget =
+    document.activeElement instanceof HTMLElement && !dom.toastContainer.contains(document.activeElement)
+      ? document.activeElement
+      : null;
 
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.textContent = message;
+
+  const iconWrap = document.createElement('span');
+  iconWrap.className = 'toast__icon';
+  iconWrap.appendChild(createStatusIcon(type));
+
+  const msgSpan = document.createElement('span');
+  msgSpan.className = 'toast__message';
+  msgSpan.textContent = message;
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'toast__close';
+  closeBtn.setAttribute('aria-label', 'Dismiss notification');
+  closeBtn.appendChild(createCloseIcon());
+
+  toast.append(iconWrap, msgSpan, closeBtn);
   dom.toastContainer.appendChild(toast);
 
-  // Trigger animation
+  if (typeof dom.toastContainer.showPopover === 'function') {
+    try {
+      if (!dom.toastContainer.matches(':popover-open') && !dom.toastContainer.classList.contains(':popover-open')) {
+        dom.toastContainer.showPopover();
+      }
+    } catch {
+      /* ignore if polyfill not ready */
+    }
+  }
+
   requestAnimationFrame(() => {
     toast.classList.add('show');
   });
 
-  setTimeout(() => {
+  announceNotification(message);
+
+  let timerId = null;
+  let paused = false;
+
+  const dismiss = (manual = false) => {
+    clearTimeout(timerId);
+    const hadFocus = toast.contains(document.activeElement);
+    const nextToast = toast.nextElementSibling || toast.previousElementSibling;
+
     toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 250);
-  }, duration);
+    setTimeout(() => {
+      toast.remove();
+      if (dom.toastContainer.children.length === 0 && typeof dom.toastContainer.hidePopover === 'function') {
+        try {
+          dom.toastContainer.hidePopover();
+        } catch {
+          /* ignore */
+        }
+      }
+      if (manual && hadFocus) {
+        const nextBtn = nextToast?.querySelector('.toast__close');
+        if (nextBtn instanceof HTMLElement) {
+          nextBtn.focus();
+        } else if (returnFocusTarget && returnFocusTarget.isConnected) {
+          returnFocusTarget.focus();
+        }
+      }
+    }, 220);
+  };
+
+  const startTimer = () => {
+    clearTimeout(timerId);
+    if (!paused) {
+      timerId = setTimeout(() => dismiss(false), duration);
+    }
+  };
+
+  toast.addEventListener('focusin', () => {
+    paused = true;
+    clearTimeout(timerId);
+  });
+  toast.addEventListener('focusout', () => {
+    requestAnimationFrame(() => {
+      if (!toast.contains(document.activeElement)) {
+        paused = false;
+        startTimer();
+      }
+    });
+  });
+  toast.addEventListener('mouseenter', () => {
+    paused = true;
+    clearTimeout(timerId);
+  });
+  toast.addEventListener('mouseleave', () => {
+    paused = false;
+    startTimer();
+  });
+
+  closeBtn.addEventListener('click', () => dismiss(true));
+  startTimer();
 }
 
 /* ==============================================================
@@ -151,6 +485,12 @@ const StateManager = (() => {
   const GALLERY_KEY = 'qr-session-gallery-v2';
   const THEME_KEY = 'qr-theme-v2';
   const MAX_DESIGNS = 25;
+  const ECL_LABELS = {
+    L: 'Low (7%)',
+    M: 'Medium (15%)',
+    Q: 'Quartile (25%)',
+    H: 'High (30%)',
+  };
 
   let logoDataUrl = null;
 
@@ -169,9 +509,29 @@ const StateManager = (() => {
     return (deg * Math.PI) / 180;
   }
 
-  /* ─── Theme Management ─── */
+  /* ─── Theme Management (Two-State Toggle with System Default) ─── */
   function detectSystemTheme() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function getRenderedTheme() {
+    const content = dom.schemeMeta?.getAttribute('content');
+    if (content === 'dark' || content === 'light') return content;
+    return detectSystemTheme();
+  }
+
+  function syncThemeMetaColor() {
+    if (!dom.metaThemeColor) return;
+    const isDark = getRenderedTheme() === 'dark';
+    dom.metaThemeColor.setAttribute('content', isDark ? '#121318' : '#3a5ba9');
+  }
+
+  function applyStoredScheme(storedScheme) {
+    const content = storedScheme === 'light' || storedScheme === 'dark' ? storedScheme : 'light dark';
+    if (dom.schemeMeta) {
+      dom.schemeMeta.setAttribute('content', content);
+    }
+    syncThemeMetaColor();
   }
 
   function initTheme() {
@@ -181,47 +541,61 @@ const StateManager = (() => {
     } catch {
       savedTheme = null;
     }
-    const theme = savedTheme || detectSystemTheme();
-    applyTheme(theme === 'dark', false);
+    applyStoredScheme(savedTheme);
 
-    // Listen for OS theme change if not manually locked
+    // Update browser chrome theme-color when OS preference changes (never remove stored override)
     try {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        if (!localStorage.getItem(THEME_KEY)) {
-          applyTheme(e.matches, false);
-        }
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        syncThemeMetaColor();
       });
-    } catch { /* old browser */ }
-  }
-
-  function applyTheme(isDark, persist = true) {
-    const theme = isDark ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', theme);
-
-    if (dom.themeIconSun && dom.themeIconMoon) {
-      dom.themeIconSun.classList.toggle('hidden', !isDark);
-      dom.themeIconMoon.classList.toggle('hidden', isDark);
+    } catch {
+      /* older browsers */
     }
 
-    if (dom.metaThemeColor) {
-      dom.metaThemeColor.setAttribute('content', isDark ? '#121318' : '#3a5ba9');
-    }
-
-    if (persist) {
-      try {
-        localStorage.setItem(THEME_KEY, theme);
-      } catch { /* storage disabled */ }
-    }
+    // Sync theme override across tabs
+    window.addEventListener('storage', (e) => {
+      if (e.key === THEME_KEY) {
+        applyStoredScheme(e.newValue);
+      }
+    });
   }
 
   function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme') || 'dark';
-    const nextDark = current !== 'dark';
-    applyTheme(nextDark, true);
-    showToast(`Switched to ${nextDark ? 'Dark' : 'Light'} theme`);
+    const current = getRenderedTheme();
+    const target = current === 'dark' ? 'light' : 'dark';
+    const system = detectSystemTheme();
+
+    if (target !== system) {
+      try {
+        localStorage.setItem(THEME_KEY, target);
+      } catch {
+        /* storage disabled */
+      }
+      applyStoredScheme(target);
+    } else {
+      try {
+        localStorage.removeItem(THEME_KEY);
+      } catch {
+        /* storage disabled */
+      }
+      applyStoredScheme(null);
+    }
+
+    showToast(`Switched to ${target === 'dark' ? 'Dark' : 'Light'} theme`);
   }
 
   /* ─── QR Options Builder ─── */
+  function getErrorCorrectionLevel() {
+    const val = getRadio('qr-ecl');
+    return Object.hasOwn(ECL_LABELS, val) ? val : 'H';
+  }
+
+  function syncEclLabel(level) {
+    if (dom.qrEclLabel) {
+      dom.qrEclLabel.textContent = ECL_LABELS[level] || ECL_LABELS.H;
+    }
+  }
+
   function buildQrOptions() {
     return {
       width: 1024,
@@ -230,7 +604,7 @@ const StateManager = (() => {
       data: dom.qrText.value.trim() || 'https://borish127.github.io/qrcode-generator/',
       margin: 14,
       qrOptions: {
-        errorCorrectionLevel: 'H' // High error correction for logo resilience
+        errorCorrectionLevel: getErrorCorrectionLevel(),
       },
       dotsOptions: buildPartOptions('dot'),
       cornersSquareOptions: buildPartOptions('csq'),
@@ -302,6 +676,7 @@ const StateManager = (() => {
       version: 3,
       timestamp: Date.now(),
       text: dom.qrText.value,
+      errorCorrectionLevel: getErrorCorrectionLevel(),
 
       bgMode: getRadio('bg-mode'),
       bgColor: dom.bgColor.value,
@@ -337,75 +712,95 @@ const StateManager = (() => {
     };
   }
 
-  function applyState(s) {
-    if (!s) return;
+  function sanitizeHexColor(val, fallback) {
+    return typeof val === 'string' && /^#[0-9a-f]{6}$/i.test(val) ? val : fallback;
+  }
 
-    dom.qrText.value = s.text || '';
+  function sanitizeLogoUrl(val) {
+    return typeof val === 'string' && val.startsWith('data:image/') ? val : null;
+  }
+
+  function applyState(s) {
+    if (!s || typeof s !== 'object' || Array.isArray(s)) return;
+
+    dom.qrText.value = typeof s.text === 'string' ? s.text : '';
+    const ecl = Object.hasOwn(ECL_LABELS, s.errorCorrectionLevel) ? s.errorCorrectionLevel : 'H';
+    setRadio('qr-ecl', ecl);
+    syncEclLabel(ecl);
 
     // Background
     setRadio('bg-mode', s.bgMode || 'solid');
-    dom.bgColor.value = s.bgColor || '#ffffff';
+    dom.bgColor.value = sanitizeHexColor(s.bgColor, '#ffffff');
     dom.bgColorHex.textContent = dom.bgColor.value;
-    dom.bgGradC1.value = s.bgGradC1 || '#d8e2ff';
+    dom.bgGradC1.value = sanitizeHexColor(s.bgGradC1, '#d8e2ff');
     dom.bgGradHex1.textContent = dom.bgGradC1.value;
-    dom.bgGradC2.value = s.bgGradC2 || '#ffffff';
+    dom.bgGradC2.value = sanitizeHexColor(s.bgGradC2, '#ffffff');
     dom.bgGradHex2.textContent = dom.bgGradC2.value;
     dom.bgGradAngle.value = s.bgGradAngle || '135';
     dom.bgGradAngleV.textContent = `${dom.bgGradAngle.value}°`;
+    UIRenderer.syncSlider(dom.bgGradAngle, '°');
     UIRenderer.syncBgUI(s.bgMode || 'solid');
 
     // Dots
     dom.dotShape.value = s.dotShape || 'rounded';
     setRadio('dot-color-mode', s.dotColorMode || 'solid');
-    dom.dotColor.value = s.dotColor || '#001a41';
+    dom.dotColor.value = sanitizeHexColor(s.dotColor, '#001a41');
     dom.dotColorHex.textContent = dom.dotColor.value;
-    dom.dotGradC1.value = s.dotGradC1 || '#1f4490';
+    dom.dotGradC1.value = sanitizeHexColor(s.dotGradC1, '#1f4490');
     dom.dotGradHex1.textContent = dom.dotGradC1.value;
-    dom.dotGradC2.value = s.dotGradC2 || '#3a5ba9';
+    dom.dotGradC2.value = sanitizeHexColor(s.dotGradC2, '#3a5ba9');
     dom.dotGradHex2.textContent = dom.dotGradC2.value;
     dom.dotGradAngle.value = s.dotGradAngle || '135';
     dom.dotGradAngleV.textContent = `${dom.dotGradAngle.value}°`;
+    UIRenderer.syncSlider(dom.dotGradAngle, '°');
     UIRenderer.syncColorModeUI('dot-color-mode', dom.dotSingleGrp, dom.dotGradCtrl);
 
     // Corner Squares
     dom.csqShape.value = s.csqShape || 'square';
     setRadio('csq-color-mode', s.csqColorMode || 'solid');
-    dom.csqColor.value = s.csqColor || '#001a41';
+    dom.csqColor.value = sanitizeHexColor(s.csqColor, '#001a41');
     dom.csqColorHex.textContent = dom.csqColor.value;
-    dom.csqGradC1.value = s.csqGradC1 || '#001a41';
+    dom.csqGradC1.value = sanitizeHexColor(s.csqGradC1, '#001a41');
     dom.csqGradHex1.textContent = dom.csqGradC1.value;
-    dom.csqGradC2.value = s.csqGradC2 || '#3a5ba9';
+    dom.csqGradC2.value = sanitizeHexColor(s.csqGradC2, '#3a5ba9');
     dom.csqGradHex2.textContent = dom.csqGradC2.value;
     dom.csqGradAngle.value = s.csqGradAngle || '135';
     dom.csqGradAngleV.textContent = `${dom.csqGradAngle.value}°`;
+    UIRenderer.syncSlider(dom.csqGradAngle, '°');
     UIRenderer.syncColorModeUI('csq-color-mode', dom.csqSingleGrp, dom.csqGradCtrl);
 
     // Corner Dots
     dom.cdShape.value = s.cdShape || 'dot';
     setRadio('cd-color-mode', s.cdColorMode || 'solid');
-    dom.cdColor.value = s.cdColor || '#001a41';
+    dom.cdColor.value = sanitizeHexColor(s.cdColor, '#001a41');
     dom.cdColorHex.textContent = dom.cdColor.value;
-    dom.cdGradC1.value = s.cdGradC1 || '#001a41';
+    dom.cdGradC1.value = sanitizeHexColor(s.cdGradC1, '#001a41');
     dom.cdGradHex1.textContent = dom.cdGradC1.value;
-    dom.cdGradC2.value = s.cdGradC2 || '#3a5ba9';
+    dom.cdGradC2.value = sanitizeHexColor(s.cdGradC2, '#3a5ba9');
     dom.cdGradHex2.textContent = dom.cdGradC2.value;
     dom.cdGradAngle.value = s.cdGradAngle || '135';
     dom.cdGradAngleV.textContent = `${dom.cdGradAngle.value}°`;
+    UIRenderer.syncSlider(dom.cdGradAngle, '°');
     UIRenderer.syncColorModeUI('cd-color-mode', dom.cdSingleGrp, dom.cdGradCtrl);
 
     // Logo
-    logoDataUrl = s.logoDataUrl || null;
+    logoDataUrl = sanitizeLogoUrl(s.logoDataUrl);
     dom.logoSize.value = s.logoSize || '30';
     dom.logoSizeVal.textContent = `${dom.logoSize.value}%`;
+    UIRenderer.syncSlider(dom.logoSize, '%');
     dom.logoMargin.value = s.logoMargin || '5';
     dom.logoMarginVal.textContent = `${dom.logoMargin.value}px`;
-    dom.logoBehind.checked = s.logoBehind !== undefined ? s.logoBehind : true;
+    UIRenderer.syncSlider(dom.logoMargin, 'px');
+    dom.logoBehind.checked = s.logoBehind !== undefined ? Boolean(s.logoBehind) : true;
 
     if (logoDataUrl) {
       dom.logoPrevImg.src = logoDataUrl;
       dom.logoFilename.textContent = 'Custom Logo';
+    } else {
+      dom.logoPrevImg.src = '';
+      dom.logoFilename.textContent = '';
     }
-    UIRenderer.syncLogoUI(!!logoDataUrl);
+    UIRenderer.syncLogoUI(Boolean(logoDataUrl));
 
     EventHandlers.scheduleUpdate();
   }
@@ -421,11 +816,15 @@ const StateManager = (() => {
   }
 
   function clearLogo() {
+    const restoreFocus = dom.logoPrevCont.contains(document.activeElement);
     logoDataUrl = null;
     dom.logoInput.value = '';
     dom.logoPrevImg.src = '';
     dom.logoFilename.textContent = '';
     UIRenderer.syncLogoUI(false);
+    if (restoreFocus && dom.logoUpload) {
+      dom.logoUpload.focus();
+    }
     EventHandlers.scheduleUpdate();
     showToast('Center logo removed');
   }
@@ -433,7 +832,8 @@ const StateManager = (() => {
   /* ─── Gallery Persistence ─── */
   function loadGallery() {
     try {
-      return JSON.parse(localStorage.getItem(GALLERY_KEY)) || [];
+      const parsed = JSON.parse(localStorage.getItem(GALLERY_KEY));
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
@@ -474,12 +874,23 @@ const StateManager = (() => {
   }
 
   return {
-    initTheme, applyTheme, toggleTheme,
-    buildQrOptions, gatherState, applyState,
-    setLogo, clearLogo,
-    loadGallery, addDesign, removeDesign, getDesignState,
-    getExportScale, getRadio, setRadio,
-    MAX_DESIGNS
+    initTheme,
+    toggleTheme,
+    buildQrOptions,
+    gatherState,
+    applyState,
+    setLogo,
+    clearLogo,
+    loadGallery,
+    addDesign,
+    removeDesign,
+    getDesignState,
+    getExportScale,
+    getErrorCorrectionLevel,
+    syncEclLabel,
+    getRadio,
+    setRadio,
+    MAX_DESIGNS,
   };
 })();
 
@@ -488,7 +899,6 @@ const StateManager = (() => {
    ============================================================== */
 
 const UIRenderer = (() => {
-
   function syncBgUI(mode) {
     dom.bgSolidGroup.classList.toggle('hidden', mode !== 'solid');
     dom.bgGradCtrl.classList.toggle('hidden', mode !== 'gradient');
@@ -506,41 +916,41 @@ const UIRenderer = (() => {
     dom.logoOptions.classList.toggle('hidden', !hasLogo);
   }
 
-  function renderGallery() {
+  function syncSlider(input, unit = '') {
+    if (!input) return;
+    input.style.setProperty('--attr-min', input.min || '0');
+    input.style.setProperty('--attr-max', input.max || '100');
+    input.style.setProperty('--control-value', input.value);
+    input.setAttribute('aria-valuetext', `${input.value}${unit}`);
+  }
+
+  function renderGallery(focusIndex = null) {
     const gallery = StateManager.loadGallery();
-    dom.galleryEl.innerHTML = '';
 
     if (gallery.length === 0) {
-      dom.galleryEl.innerHTML = '<div class="gallery-empty">No saved designs yet</div>';
+      const empty = document.createElement('div');
+      empty.className = 'gallery-empty';
+      empty.textContent = 'No saved designs yet';
+      dom.galleryEl.replaceChildren(empty);
       dom.galleryNote.textContent = `0 / ${StateManager.MAX_DESIGNS} saved`;
+      if (focusIndex !== null && dom.saveDesignBtn) {
+        dom.saveDesignBtn.focus();
+      }
       return;
     }
+
+    const fragment = document.createDocumentFragment();
+    const restoreButtons = [];
 
     gallery.forEach((item, i) => {
       const card = document.createElement('div');
       card.className = 'gallery-card';
-      card.title = `Saved Design ${i + 1} — Click to restore`;
 
-      const img = document.createElement('img');
-      img.src = item.thumbnail;
-      img.alt = `Preset ${i + 1}`;
-      card.appendChild(img);
-
-      const del = document.createElement('button');
-      del.className = 'gallery-card__delete';
-      del.innerHTML = '&times;';
-      del.title = 'Delete preset';
-      del.setAttribute('aria-label', `Delete preset ${i + 1}`);
-
-      del.addEventListener('click', (e) => {
-        e.stopPropagation();
-        StateManager.removeDesign(i);
-        renderGallery();
-        showToast('Design deleted');
-      });
-      card.appendChild(del);
-
-      card.addEventListener('click', () => {
+      const restoreBtn = document.createElement('button');
+      restoreBtn.type = 'button';
+      restoreBtn.className = 'gallery-card__restore';
+      restoreBtn.setAttribute('aria-label', `Restore saved design ${i + 1}`);
+      restoreBtn.addEventListener('click', () => {
         const state = StateManager.getDesignState(i);
         if (state) {
           StateManager.applyState(state);
@@ -548,13 +958,40 @@ const UIRenderer = (() => {
         }
       });
 
-      dom.galleryEl.appendChild(card);
+      const img = document.createElement('img');
+      img.src = typeof item.thumbnail === 'string' && item.thumbnail.startsWith('data:image/') ? item.thumbnail : '';
+      img.alt = '';
+      restoreBtn.appendChild(img);
+      card.appendChild(restoreBtn);
+      restoreButtons.push(restoreBtn);
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'gallery-card__delete';
+      delBtn.textContent = '×';
+      delBtn.setAttribute('aria-label', `Delete saved design ${i + 1}`);
+
+      delBtn.addEventListener('click', () => {
+        const wasFocused = document.activeElement === delBtn;
+        StateManager.removeDesign(i);
+        renderGallery(wasFocused ? i : null);
+        showToast('Design deleted');
+      });
+      card.appendChild(delBtn);
+
+      fragment.appendChild(card);
     });
 
+    dom.galleryEl.replaceChildren(fragment);
     dom.galleryNote.textContent = `${gallery.length} / ${StateManager.MAX_DESIGNS} saved`;
+
+    if (focusIndex !== null && restoreButtons.length > 0) {
+      const target = restoreButtons[Math.min(focusIndex, restoreButtons.length - 1)];
+      target?.focus();
+    }
   }
 
-  return { syncBgUI, syncColorModeUI, syncLogoUI, renderGallery };
+  return { syncBgUI, syncColorModeUI, syncLogoUI, syncSlider, renderGallery };
 })();
 
 /* ==============================================================
@@ -583,14 +1020,16 @@ const EventHandlers = (() => {
   }
 
   function wireRange(input, valSpan, unit = '') {
+    UIRenderer.syncSlider(input, unit);
     input.addEventListener('input', () => {
       valSpan.textContent = `${input.value}${unit}`;
+      UIRenderer.syncSlider(input, unit);
       scheduleUpdate();
     });
   }
 
   function wireColorModeToggle(radioName, solidGroup, gradCtrl) {
-    $$(`input[name="${radioName}"]`).forEach(r => {
+    $$(`input[name="${radioName}"]`).forEach((r) => {
       r.addEventListener('change', () => {
         UIRenderer.syncColorModeUI(radioName, solidGroup, gradCtrl);
         scheduleUpdate();
@@ -619,6 +1058,10 @@ const EventHandlers = (() => {
 
   /* ─── Download Action ─── */
   function downloadQr(ext) {
+    if (typeof QRCodeStyling !== 'function') {
+      showToast('QR rendering library failed to load', 'error');
+      return;
+    }
     const scale = StateManager.getExportScale();
     const base = 512;
     const size = base * scale;
@@ -629,7 +1072,8 @@ const EventHandlers = (() => {
 
     try {
       const exportInstance = new QRCodeStyling(opts);
-      exportInstance.download({ name: 'qrcode', extension: ext })
+      exportInstance
+        .download({ name: 'qrcode', extension: ext })
         .then(() => {
           showToast(`Exported ${ext.toUpperCase()} (${scale}x — ${size}px)`, 'success');
         })
@@ -677,7 +1121,7 @@ const EventHandlers = (() => {
       a.href = url;
       a.download = `qr-preset-${Date.now()}.json`;
       a.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
       showToast('Configuration exported as JSON', 'success');
     } catch {
       showToast('Failed to export configuration', 'error');
@@ -692,6 +1136,9 @@ const EventHandlers = (() => {
     reader.onload = (ev) => {
       try {
         const state = JSON.parse(ev.target.result);
+        if (!state || typeof state !== 'object' || Array.isArray(state)) {
+          throw new Error('Invalid preset shape');
+        }
         StateManager.applyState(state);
         showToast('Configuration imported successfully', 'success');
       } catch {
@@ -702,13 +1149,51 @@ const EventHandlers = (() => {
     dom.importJsonInp.value = '';
   }
 
-  /* ─── Modal Handling ─── */
-  function openAboutModal() {
-    dom.aboutModalBackdrop.classList.add('open');
-  }
+  /* ─── Native <dialog> Handling (Fallbacks & Smooth Top-Layer Exit) ─── */
+  function wireAboutDialog() {
+    const dialog = dom.aboutModal;
+    if (!dialog) return;
 
-  function closeAboutModal() {
-    dom.aboutModalBackdrop.classList.remove('open');
+    // Fallback when invokers-polyfill could not be loaded (e.g. offline)
+    if (!('commandForElement' in HTMLButtonElement.prototype) && dom.btnAbout) {
+      dom.btnAbout.addEventListener('click', () => {
+        if (window.__invokerPolyfillFailed && !dialog.open) {
+          dialog.showModal();
+        }
+      });
+    }
+
+    // Light-dismiss fallback for browsers without native closedby="any"
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+      const outside = (e) => {
+        const r = dialog.getBoundingClientRect();
+        return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      };
+      let pressedOutside = false;
+      dialog.addEventListener('pointerdown', (e) => {
+        pressedOutside = outside(e);
+      });
+      dialog.addEventListener('pointerup', (e) => {
+        if (pressedOutside && outside(e)) {
+          closeTopLayer(dialog);
+        }
+      });
+    }
+
+    // Route close requests & form method="dialog" through closeTopLayer when exit animation needs JS help
+    dialog.addEventListener('cancel', (event) => {
+      if (!supportsTopLayerExit()) {
+        event.preventDefault();
+        closeTopLayer(dialog);
+      }
+    });
+
+    dialog.addEventListener('submit', (event) => {
+      if (event.target instanceof HTMLFormElement && event.target.method === 'dialog' && !supportsTopLayerExit()) {
+        event.preventDefault();
+        closeTopLayer(dialog);
+      }
+    });
   }
 
   /* ─── Wire Events ─── */
@@ -717,22 +1202,19 @@ const EventHandlers = (() => {
     dom.btnTheme.addEventListener('click', StateManager.toggleTheme);
 
     // About Modal
-    dom.btnAbout.addEventListener('click', openAboutModal);
-    dom.btnCloseAbout.addEventListener('click', closeAboutModal);
-    dom.aboutModalBackdrop.addEventListener('click', (e) => {
-      if (e.target === dom.aboutModalBackdrop) closeAboutModal();
-    });
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && dom.aboutModalBackdrop.classList.contains('open')) {
-        closeAboutModal();
-      }
-    });
+    wireAboutDialog();
 
-    // QR Payload text
+    // QR Payload text & Quality (Error Correction Level)
     dom.qrText.addEventListener('input', scheduleUpdate);
+    $$('input[name="qr-ecl"]').forEach((r) => {
+      r.addEventListener('change', () => {
+        StateManager.syncEclLabel(StateManager.getErrorCorrectionLevel());
+        scheduleUpdate();
+      });
+    });
 
     // Background mode
-    $$('input[name="bg-mode"]').forEach(r => {
+    $$('input[name="bg-mode"]').forEach((r) => {
       r.addEventListener('change', () => {
         UIRenderer.syncBgUI(StateManager.getRadio('bg-mode'));
         scheduleUpdate();
@@ -774,14 +1256,14 @@ const EventHandlers = (() => {
     dom.removeLogoBtn.addEventListener('click', StateManager.clearLogo);
 
     // Drag and Drop
-    ['dragenter', 'dragover'].forEach(eventName => {
+    ['dragenter', 'dragover'].forEach((eventName) => {
       dom.logoUpload.addEventListener(eventName, (e) => {
         e.preventDefault();
         e.stopPropagation();
         dom.logoUpload.classList.add('dragover');
       });
     });
-    ['dragleave', 'drop'].forEach(eventName => {
+    ['dragleave', 'drop'].forEach((eventName) => {
       dom.logoUpload.addEventListener(eventName, (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -800,7 +1282,7 @@ const EventHandlers = (() => {
     dom.logoBehind.addEventListener('change', scheduleUpdate);
 
     // Resolution change label
-    $$('input[name="export-res"]').forEach(r => {
+    $$('input[name="export-res"]').forEach((r) => {
       r.addEventListener('change', () => {
         const scale = StateManager.getExportScale();
         const size = 512 * scale;
@@ -824,9 +1306,12 @@ const EventHandlers = (() => {
   function init() {
     StateManager.initTheme();
 
-    // Instantiate qr-code-styling
-    qrCode = new QRCodeStyling(StateManager.buildQrOptions());
-    qrCode.append(dom.qrPreview);
+    if (typeof QRCodeStyling === 'function') {
+      qrCode = new QRCodeStyling(StateManager.buildQrOptions());
+      qrCode.append(dom.qrPreview);
+    } else {
+      showToast('QR rendering library unavailable offline', 'error');
+    }
 
     wireAll();
     UIRenderer.renderGallery();
