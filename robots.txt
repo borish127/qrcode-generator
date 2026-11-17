@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://borish127.github.io/qrcode-generator/sitemap.xml
+Sitemap: https://qrcode-generator.borish127.com/sitemap.xml

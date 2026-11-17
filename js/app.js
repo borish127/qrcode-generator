@@ -601,7 +601,7 @@ const StateManager = (() => {
       width: 1024,
       height: 1024,
       type: 'canvas',
-      data: dom.qrText.value.trim() || 'https://borish127.github.io/qrcode-generator/',
+      data: dom.qrText.value.trim() || 'https://qrcode-generator.borish127.com/',
       margin: 14,
       qrOptions: {
         errorCorrectionLevel: getErrorCorrectionLevel(),

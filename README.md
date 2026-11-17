@@ -8,7 +8,7 @@ A static, client-side web application for generating beautiful, customized, and 
 
 QR Code Generator runs entirely in your browser with zero installation, tracking, or account setup required. You can access and use the live application directly here:
 
-[**https://borish127.github.io/qrcode-generator/**](https://borish127.github.io/qrcode-generator/)
+[**https://qrcode-generator.borish127.com/**](https://qrcode-generator.borish127.com/)
 
 ## Features
 
