@@ -104,21 +104,21 @@
   <!-- Conditional Progressive-Enhancement Polyfills -->
   <script type="module">
     if (!('commandForElement' in HTMLButtonElement.prototype)) {
-      import('https://esm.run/invokers-polyfill').catch(() => {
+      import('https://cdn.jsdelivr.net/npm/invokers-polyfill@1.0.4/+esm').catch(() => {
         window.__invokerPolyfillFailed = true;
       });
     }
     if (!Object.hasOwn(HTMLElement.prototype, 'popover')) {
-      import('https://unpkg.com/@oddbird/popover-polyfill@latest/dist/popover.min.js').catch(() => {});
+      import('https://cdn.jsdelivr.net/npm/@oddbird/popover-polyfill@0.7.3/dist/popover.min.js').catch(() => {});
     }
     if (!('interestForElement' in HTMLButtonElement.prototype)) {
-      import('https://unpkg.com/interestfor@latest').catch(() => {});
+      import('https://cdn.jsdelivr.net/npm/interestfor@1.0.14/src/interestfor.min.js').catch(() => {});
     }
     if (!CSS.supports('anchor-name: --a')) {
-      import('https://unpkg.com/@oddbird/css-anchor-positioning').catch(() => {});
+      import('https://cdn.jsdelivr.net/npm/@oddbird/css-anchor-positioning@0.10.2/dist/css-anchor-positioning.js').catch(() => {});
     }
     if (!('switch' in HTMLInputElement.prototype)) {
-      import('https://esm.run/input-switch-polyfill').catch(() => {});
+      import('https://cdn.jsdelivr.net/npm/input-switch-polyfill@1.12.0/input-switch-polyfill.js').catch(() => {});
     }
   </script>
 </head>
